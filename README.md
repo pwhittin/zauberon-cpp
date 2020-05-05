@@ -56,7 +56,7 @@ the resulting plot looks like this:
 
 ![Plot Of zauberons.dat](zauberons.png)
 
-Note that the plot will change each time the **zauberon.sh** command is executed because it is generating random data
+Note that the plot will change each time the **zauberon** command is executed because it is generating random data
 to define the path characteristics of the various zauberons it creates.
 
 ## License
