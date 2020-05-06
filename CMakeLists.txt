@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(zauberon_cpp)
-
+project(zauberon)
 set(CMAKE_CXX_STANDARD 14)
+add_subdirectory(catch-tests)
 
-add_executable(zauberon_cpp
-        main.cpp)
+add_executable(zauberon
+        functional-utils.h   functional-utils.cpp
+        schneider.h          schnieder.cpp
+        main.cpp global-types.h)
+
