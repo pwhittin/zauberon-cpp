@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include "functional-utils.h"
 #include "schneider.h"
 
@@ -10,9 +12,45 @@ static constexpr TNumber PI{static_cast<TNumber>(1146408.0) / static_cast<TNumbe
 static constexpr TNumber _2PI{PI * PI};
 static constexpr TNumber SCHNEIDER_CONSTANT{static_cast<TNumber>(2.7978344950466395e-30)};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// internal
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static TNumber WaveLength(TFrequency f) noexcept;
+
+static TNumbers Frequencies{Multiply(1e+12, Range(405, 791))};
+static TNumbers WaveLengths{Map(WaveLength, Frequencies)};
+static TNumbers Radii{Map(SchneiderRadius, Frequencies)};
+
 static TNumber Degrees2Radians(const TDegrees d) noexcept
 {
     return (_2PI * (d / 360.0));
+}
+
+static TLength Radius(const TWaveLength waveLength) noexcept
+{
+    auto waveLengthIt{std::find(WaveLengths.begin(), WaveLengths.end(), waveLength)};
+    auto waveLengthIndex{std::distance(WaveLengths.begin(), waveLengthIt)};
+    return Radii[waveLengthIndex];
+}
+
+static TRadians RandomAngle() noexcept
+{
+    return Degrees2Radians(static_cast<TDegrees>(std::rand() % 360));
+}
+
+static TRotationEnum RandomRotation() noexcept
+{
+    return ((std::rand() % 2) == 0) ? R_RIGHT : R_LEFT;
+}
+
+static TPitchYawRoll RandomPitchYawRoll() noexcept
+{
+    return PitchYawRoll(RandomAngle(), RandomAngle(), RandomAngle());
+}
+
+static TWaveLength RandomWaveLength() noexcept
+{
+    return WaveLengths[std::rand() % WaveLengths.size()];
 }
 
 static TNumber WaveLength(const TFrequency f) noexcept
@@ -20,12 +58,31 @@ static TNumber WaveLength(const TFrequency f) noexcept
     return (C / f);
 }
 
-TNumber schneider::AngleStep(const TLength xStep, const TWaveLength waveLength) noexcept
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// external
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TRadians schneider::AngleStep(const TLength xStep, const TWaveLength waveLength) noexcept
 {
     return Degrees2Radians(360.0 * (xStep / waveLength));
 }
 
-TPitchYawRoll schneider::PitchYawRoll(const TNumber pitch, const TNumber yaw, const TNumber roll) noexcept
+// TODO: Add tests
+TZauberon schneider::InitializeZauberon(const TLength xStep, const TXYZ& xyzInitial) noexcept
+{
+    TWaveLength waveLength{RandomWaveLength()};
+
+    TZauberon result;
+    result.angle = RandomAngle();
+    result.angleStep = AngleStep(xStep, waveLength);
+    result.pyr = RandomPitchYawRoll();
+    result.radius = Radius(waveLength);
+    result.rotation = RandomRotation();
+    result.xfm = XFormMatrix(result.pyr);
+    result.xyz = xyzInitial;
+    return result;
+}
+
+TPitchYawRoll schneider::PitchYawRoll(const TPitch pitch, const TYaw yaw, const TRoll roll) noexcept
 {
     return Numbers({pitch, yaw, roll});
 }
@@ -45,16 +102,17 @@ TXFormMatrix schneider::XFormMatrix(const TPitchYawRoll& pyr) noexcept
     TNumbers cosPyr{Map(std::cos, pyr)};
     TNumbers sinPyr{Map(std::sin, pyr)};
 
-    return TXFormMatrix{TXYZ{(cosPyr[PITCH] * cosPyr[YAW]),
-                             ((sinPyr[ROLL] * sinPyr[PITCH] * cosPyr[YAW]) - (cosPyr[ROLL] * sinPyr[YAW])),
-                             ((sinPyr[ROLL] * sinPyr[YAW]) + (cosPyr[ROLL] * sinPyr[PITCH] * cosPyr[YAW]))},
-                        TXYZ{(cosPyr[PITCH] * sinPyr[YAW]),
-                             ((cosPyr[ROLL] * cosPyr[YAW]) + (sinPyr[ROLL] * sinPyr[PITCH] * sinPyr[YAW])),
-                             ((cosPyr[ROLL] * sinPyr[PITCH] * sinPyr[YAW]) - (sinPyr[ROLL] * cosPyr[YAW]))},
-                        TXYZ{(-sinPyr[PITCH]), (sinPyr[ROLL] * cosPyr[PITCH]), (cosPyr[ROLL] * cosPyr[PITCH])}};
+    return TXFormMatrix{
+        TXYZ{(cosPyr[PYR_PITCH] * cosPyr[PYR_YAW]),
+             ((sinPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * cosPyr[PYR_YAW]) - (cosPyr[PYR_ROLL] * sinPyr[PYR_YAW])),
+             ((sinPyr[PYR_ROLL] * sinPyr[PYR_YAW]) + (cosPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * cosPyr[PYR_YAW]))},
+        TXYZ{(cosPyr[PYR_PITCH] * sinPyr[PYR_YAW]),
+             ((cosPyr[PYR_ROLL] * cosPyr[PYR_YAW]) + (sinPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * sinPyr[PYR_YAW])),
+             ((cosPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * sinPyr[PYR_YAW]) - (sinPyr[PYR_ROLL] * cosPyr[PYR_YAW]))},
+        TXYZ{(-sinPyr[PYR_PITCH]), (sinPyr[PYR_ROLL] * cosPyr[PYR_PITCH]), (cosPyr[PYR_ROLL] * cosPyr[PYR_PITCH])}};
 }
 
-TXYZ schneider::XYZ(const TNumber x, const TNumber y, const TNumber z) noexcept
+TXYZ schneider::XYZ(const TX x, const TY y, const TZ z) noexcept
 {
     return TXYZ({x, y, z});
 }

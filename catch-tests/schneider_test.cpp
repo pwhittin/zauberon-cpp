@@ -11,9 +11,9 @@ TEST_CASE("AngleStep", "[AngleStepTest]")
 TEST_CASE("PitchYawRoll", "[PitchYawRollTest]")
 {
     TPitchYawRoll pyr{PitchYawRoll(1.0, 2.0, 3.0)};
-    CHECK(pyr[PITCH] == Approx(1.0));
-    CHECK(pyr[YAW] == Approx(2.0));
-    CHECK(pyr[ROLL] == Approx(3.0));
+    CHECK(pyr[PYR_PITCH] == Approx(1.0));
+    CHECK(pyr[PYR_YAW] == Approx(2.0));
+    CHECK(pyr[PYR_ROLL] == Approx(3.0));
     CHECK(pyr.size() == 3);
 }
 
@@ -48,8 +48,8 @@ TEST_CASE("XFormMatrix", "[XFormMatrixTest]")
 TEST_CASE("XYZ", "[XYZTest]")
 {
     TXYZ xyz{XYZ(1.0, 2.0, 3.0)};
-    CHECK(xyz[X] == Approx(1.0));
-    CHECK(xyz[Y] == Approx(2.0));
-    CHECK(xyz[Z] == Approx(3.0));
+    CHECK(xyz[XYZ_X] == Approx(1.0));
+    CHECK(xyz[XYZ_Y] == Approx(2.0));
+    CHECK(xyz[XYZ_Z] == Approx(3.0));
     CHECK(xyz.size() == 3);
 }

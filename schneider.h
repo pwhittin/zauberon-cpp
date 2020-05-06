@@ -1,7 +1,6 @@
 #ifndef ZAUBERON_SCHNEIDER_H
 #define ZAUBERON_SCHNEIDER_H
 
-#include <vector>
 #include "global-types.h"
 
 /***********************************************************************************************************************
@@ -38,32 +37,55 @@ using TRadians = TNumber;
 using TRadius = TNumber;
 using TRoll = TNumber;
 using TWaveLength = TNumber;
+using TX = TNumber;
+using TY = TNumber;
 using TYaw = TNumber;
+using TZ = TNumber;
 
 using TPitchYawRoll = TNumbers;
 using TXFormMatrix = std::vector<TNumbers>;
 using TXYZ = TNumbers;
 
-enum PitchYarRollEnum
+enum TRotationEnum
 {
-    PITCH,
-    YAW,
-    ROLL
+    R_LEFT,
+    R_RIGHT
 };
 
-enum XYZEnum
+enum TPitchYawRollEnum
 {
-    X,
-    Y,
-    Z
+    PYR_PITCH,
+    PYR_YAW,
+    PYR_ROLL
 };
 
-TNumber AngleStep(TLength xStep, TWaveLength waveLength) noexcept;
-TPitchYawRoll PitchYawRoll(TNumber x = 0.0, TNumber y = 0.0, TNumber z = 0.0) noexcept;
+enum TXYZEnum
+{
+    XYZ_X,
+    XYZ_Y,
+    XYZ_Z
+};
+
+struct TZauberon
+{
+    TRadians angle;
+    TRadians angleStep;
+    TPitchYawRoll pyr;
+    TLength radius;
+    TRotationEnum rotation;
+    TXFormMatrix xfm;
+    TXYZ xyz;
+};
+
+using TZauberons = std::vector<TZauberon>;
+
+TRadians AngleStep(TLength xStep, TWaveLength waveLength) noexcept;
+TZauberon InitializeZauberon(const TLength xStep, const TXYZ& xyzInitial) noexcept;
+TPitchYawRoll PitchYawRoll(TPitch x = 0.0, TYaw y = 0.0, TRoll z = 0.0) noexcept;
 TXYZ Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz) noexcept;
 TNumber SchneiderRadius(TFrequency f) noexcept;
 TXFormMatrix XFormMatrix(const TPitchYawRoll& pyr) noexcept;
-TXYZ XYZ(TNumber x = 0.0, TNumber y = 0.0, TNumber z = 0.0) noexcept;
+TXYZ XYZ(TX x = 0.0, TY y = 0.0, TZ z = 0.0) noexcept;
 
 } // namespace schneider
 

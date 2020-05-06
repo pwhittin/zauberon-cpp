@@ -152,6 +152,12 @@ TEST_CASE("Map Binary Inline", "[MapBinaryInlineTest]")
     }
 }
 
+TEST_CASE("Range", "[RangeTest]")
+{
+    CHECK(Range(5) == Numbers({0.0, 1.0, 2.0, 3.0, 4.0}));
+    CHECK(Range(10, 16) == Numbers({10.0, 11.0, 12.0, 13.0, 14.0, 15.0}));
+}
+
 TEST_CASE("Reduce Numbers", "[ReduceNumbersTest]")
 {
     auto bf = [](const TNumber n1, const TNumber n2) { return (n1 + n2); };

@@ -6,4 +6,4 @@
 using TNumber = double;
 using TNumbers = std::vector<TNumber>;
 
-#endif //ZAUBERON_GLOBAL_TYPES_H
+#endif // ZAUBERON_GLOBAL_TYPES_H

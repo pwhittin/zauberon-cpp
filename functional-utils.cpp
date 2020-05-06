@@ -3,10 +3,18 @@
 #include <numeric>
 #include "functional-utils.h"
 
-#define DEFINE_REDUCER_CPP(name, op)                                                                                   \
+#define DEFINE_REDUCER_CPP(name, nameOp)                                                                               \
     TNumber functional_utils::Binary##name(const TNumber n1, const TNumber n2) noexcept                                \
     {                                                                                                                  \
-        return (n1 op n2);                                                                                             \
+        return (n1 nameOp n2);                                                                                         \
+    }                                                                                                                  \
+                                                                                                                       \
+    TNumbers functional_utils::name(const TNumber number, const TNumbers& numbers) noexcept                            \
+    {                                                                                                                  \
+        auto uf = [number](const TNumber n) { return Binary##name(n, number); };                                       \
+        auto result{TNumbers(numbers.size())};                                                                         \
+        std::transform(numbers.begin(), numbers.end(), result.begin(), uf);                                            \
+        return result;                                                                                                 \
     }                                                                                                                  \
                                                                                                                        \
     TNumbers functional_utils::name(const TNumbers& numbers1, const TNumbers& numbers2) noexcept                       \
@@ -69,6 +77,18 @@ TNumbers functional_utils::Map(TBinaryFunction bf,
     return result;
 }
 
+TNumbers functional_utils::Range(const unsigned int zeroToThisMinusOne) noexcept
+{
+    return Range(0, zeroToThisMinusOne);
+}
+
+TNumbers functional_utils::Range(const unsigned int start, const unsigned int endPlusOne) noexcept
+{
+    auto result{TNumbers(endPlusOne - start)};
+    std::iota(result.begin(), result.end(), start);
+    return result;
+}
+
 TNumber functional_utils::Reduce(TBinaryFunction bf, const TNumbers& numbers) noexcept
 {
     return std::accumulate(numbers.cbegin() + 1, numbers.cend(), *numbers.cbegin(), bf);
@@ -79,6 +99,7 @@ TNumber functional_utils::Reduce(TBinaryFunction bf, std::initializer_list<TNumb
     return std::accumulate(numbers.begin() + 1, numbers.end(), *numbers.begin(), bf);
 }
 
+// TODO: Add tests for TNumbers functional_utils::name(const TNumber number, const TNumbers& numbers) noexcept
 DEFINE_REDUCER_CPP(Add, +)
 DEFINE_REDUCER_CPP(Divide, /)
 DEFINE_REDUCER_CPP(Multiply, *)
