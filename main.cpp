@@ -15,8 +15,7 @@ auto FormatNumbers(const TNumbers& numbers) noexcept
 
 auto FormatXYZ(const TXYZ& xyz) noexcept
 {
-    return std::string{"[" + std::to_string(xyz[0]) + " " + std::to_string(xyz[1]) + " " + std::to_string(xyz[2]) +
-                       "]"};
+    return FormatNumbers(xyz);
 }
 
 auto FormatXformMatrix(const TXFormMatrix& xfm) noexcept
@@ -30,6 +29,9 @@ int main()
     auto xfm{XFormMatrix(pyr)};
     TXYZ xyz{XYZ(11, 22, 33)};
     auto xyzRotated{Rotate3D(xfm, xyz)};
+    TZauberon zauberon{ZauberonInitialize(1.0, xyz)};
+    ZauberonNewPosition(1.0, zauberon);
+
     std::cout << "\n";
     std::cout << FormatNumbers(pyr) << "\n";
     std::cout << "\n";

@@ -91,7 +91,7 @@ TEST_CASE("Map Unary Inline", "[MapUnaryInlineTest]")
     }
 }
 
-TEST_CASE("Map Binary Number", "[MapBinaryNumbersTest]")
+TEST_CASE("Map Binary Numbers", "[MapBinaryNumbersTest]")
 {
     auto bf = [](const TNumber n1, const TNumber n2) { return (n1 + n2); };
 
@@ -152,6 +152,71 @@ TEST_CASE("Map Binary Inline", "[MapBinaryInlineTest]")
     }
 }
 
+TEST_CASE("Map Ternary Numbers", "[MapTernaryNumbersTest]")
+{
+    auto tf = [](const TNumber n1, const TNumber n2, const TNumber n3) { return (n1 + n2 + n3); };
+
+    SECTION("one number")
+    {
+        TNumbers mappedNumbers{Map(tf, Numbers({11.1}), Numbers({10.0}), Numbers({20.0}))};
+        CHECK(mappedNumbers[0] == Approx(41.1));
+        CHECK(mappedNumbers.size() == 1);
+    }
+    SECTION("three numbers")
+    {
+        TNumbers mappedNumbers{
+            Map(tf, Numbers({11.1, 22.2, 33.3}), Numbers({10.0, 20.0, 30.0}), Numbers({1.0, 2.0, 3.0}))};
+        CHECK(mappedNumbers[0] == Approx(22.1));
+        CHECK(mappedNumbers[1] == Approx(44.2));
+        CHECK(mappedNumbers[2] == Approx(66.3));
+        CHECK(mappedNumbers.size() == 3);
+    }
+    SECTION("five numbers")
+    {
+        TNumbers mappedNumbers{Map(tf,
+                                   Numbers({11.1, 22.2, 33.3, 44.4, 55.5}),
+                                   Numbers({10.0, 20.0, 30.0, 40.0, 50.0}),
+                                   Numbers({1.0, 2.0, 3.0, 4.0, 5.0}))};
+        CHECK(mappedNumbers[0] == Approx(22.1));
+        CHECK(mappedNumbers[1] == Approx(44.2));
+        CHECK(mappedNumbers[2] == Approx(66.3));
+        CHECK(mappedNumbers[3] == Approx(88.4));
+        CHECK(mappedNumbers[4] == Approx(110.5));
+        CHECK(mappedNumbers.size() == 5);
+    }
+}
+
+TEST_CASE("Map Ternary Inline", "[MapTernaryInlineTest]")
+{
+    auto tf = [](const TNumber n1, const TNumber n2, const TNumber n3) { return (n1 + n2 + n3); };
+
+    SECTION("one number")
+    {
+        TNumbers mappedNumbers{Map(tf, {11.1}, {10.0}, {1.0})};
+        CHECK(mappedNumbers[0] == Approx(22.1));
+        CHECK(mappedNumbers.size() == 1);
+    }
+    SECTION("three numbers")
+    {
+        TNumbers mappedNumbers{Map(tf, {11.1, 22.2, 33.3}, {10.0, 20.0, 30.0}, {1.0, 2.0, 3.0})};
+        CHECK(mappedNumbers[0] == Approx(22.1));
+        CHECK(mappedNumbers[1] == Approx(44.2));
+        CHECK(mappedNumbers[2] == Approx(66.3));
+        CHECK(mappedNumbers.size() == 3);
+    }
+    SECTION("five numbers")
+    {
+        TNumbers mappedNumbers{
+            Map(tf, {11.1, 22.2, 33.3, 44.4, 55.5}, {10.0, 20.0, 30.0, 40.0, 50.0}, {1.0, 2.0, 3.0, 4.0, 5.0})};
+        CHECK(mappedNumbers[0] == Approx(22.1));
+        CHECK(mappedNumbers[1] == Approx(44.2));
+        CHECK(mappedNumbers[2] == Approx(66.3));
+        CHECK(mappedNumbers[3] == Approx(88.4));
+        CHECK(mappedNumbers[4] == Approx(110.5));
+        CHECK(mappedNumbers.size() == 5);
+    }
+}
+
 TEST_CASE("Range", "[RangeTest]")
 {
     CHECK(Range(5) == Numbers({0.0, 1.0, 2.0, 3.0, 4.0}));
@@ -195,6 +260,23 @@ TEST_CASE("Add", "[AddTest]")
     SECTION("BinaryAdd")
     {
         CHECK(BinaryAdd(3.0, 5.0) == Approx(8.0));
+    }
+    SECTION("Add Number Numbers")
+    {
+        SECTION("one number")
+        {
+            TNumbers numbers{Add(1.0, Numbers({2.0}))};
+            CHECK(numbers[0] == Approx(3.0));
+            CHECK(numbers.size() == 1);
+        }
+        SECTION("three number")
+        {
+            TNumbers numbers{Add(1.0, Numbers({10.0, 20.0, 30.0}))};
+            CHECK(numbers[0] == Approx(11.0));
+            CHECK(numbers[1] == Approx(21.0));
+            CHECK(numbers[2] == Approx(31.0));
+            CHECK(numbers.size() == 3);
+        }
     }
     SECTION("Add Numbers")
     {
@@ -264,6 +346,23 @@ TEST_CASE("Divide", "[DivideTest]")
     {
         CHECK(BinaryDivide(3.0, 5.0) == Approx(0.6));
     }
+    SECTION("Divide Number Numbers")
+    {
+        SECTION("one number")
+        {
+            TNumbers numbers{Divide(2.0, Numbers({2.0}))};
+            CHECK(numbers[0] == Approx(1.0));
+            CHECK(numbers.size() == 1);
+        }
+        SECTION("three number")
+        {
+            TNumbers numbers{Divide(2.0, Numbers({10.0, 20.0, 30.0}))};
+            CHECK(numbers[0] == Approx(5.0));
+            CHECK(numbers[1] == Approx(10.0));
+            CHECK(numbers[2] == Approx(15.0));
+            CHECK(numbers.size() == 3);
+        }
+    }
     SECTION("Divide Numbers")
     {
         SECTION("one number")
@@ -332,6 +431,23 @@ TEST_CASE("Multiply", "[MultiplyTest]")
     {
         CHECK(BinaryMultiply(3.0, 5.0) == Approx(15.0));
     }
+    SECTION("Multiply Number Numbers")
+    {
+        SECTION("one number")
+        {
+            TNumbers numbers{Multiply(2.0, Numbers({2.0}))};
+            CHECK(numbers[0] == Approx(4.0));
+            CHECK(numbers.size() == 1);
+        }
+        SECTION("three number")
+        {
+            TNumbers numbers{Multiply(2.0, Numbers({10.0, 20.0, 30.0}))};
+            CHECK(numbers[0] == Approx(20.0));
+            CHECK(numbers[1] == Approx(40.0));
+            CHECK(numbers[2] == Approx(60.0));
+            CHECK(numbers.size() == 3);
+        }
+    }
     SECTION("Multiply Numbers")
     {
         SECTION("one number")
@@ -399,6 +515,23 @@ TEST_CASE("Subtract", "[SubtractTest]")
     SECTION("BinarySubtract")
     {
         CHECK(BinarySubtract(3.0, 5.0) == Approx(-2.0));
+    }
+    SECTION("Subtract Number Numbers")
+    {
+        SECTION("one number")
+        {
+            TNumbers numbers{Subtract(2.0, Numbers({2.0}))};
+            CHECK(numbers[0] == Approx(0.0));
+            CHECK(numbers.size() == 1);
+        }
+        SECTION("three number")
+        {
+            TNumbers numbers{Subtract(2.0, Numbers({10.0, 20.0, 30.0}))};
+            CHECK(numbers[0] == Approx(8.0));
+            CHECK(numbers[1] == Approx(18.0));
+            CHECK(numbers[2] == Approx(28.0));
+            CHECK(numbers.size() == 3);
+        }
     }
     SECTION("Subtract Numbers")
     {

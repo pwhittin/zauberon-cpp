@@ -17,12 +17,19 @@ namespace functional_utils
 
 using TUnaryFunction = TNumber (*)(const TNumber);
 using TBinaryFunction = TNumber (*)(const TNumber, const TNumber);
+using TTernaryFunction = TNumber (*)(const TNumber, const TNumber, const TNumber);
 
 TNumbers Map(TUnaryFunction uf, const TNumbers& numbers) noexcept;
 TNumbers Map(TUnaryFunction uf, std::initializer_list<TNumber> numbers) noexcept;
 TNumbers Map(TBinaryFunction bf, const TNumbers& numbers1, const TNumbers& numbers2) noexcept;
 TNumbers
 Map(TBinaryFunction bf, std::initializer_list<TNumber> numbers1, std::initializer_list<TNumber> numbers2) noexcept;
+TNumbers
+Map(TTernaryFunction tf, const TNumbers& numbers1, const TNumbers& numbers2, const TNumbers& numbers3) noexcept;
+TNumbers Map(TTernaryFunction tf,
+             std::initializer_list<TNumber> numbers1,
+             std::initializer_list<TNumber> numbers2,
+             std::initializer_list<TNumber> numbers3) noexcept;
 
 TNumbers Numbers(std::initializer_list<TNumber> numbers) noexcept;
 

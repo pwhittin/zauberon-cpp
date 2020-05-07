@@ -11,33 +11,28 @@
                                                                                                                        \
     TNumbers functional_utils::name(const TNumber number, const TNumbers& numbers) noexcept                            \
     {                                                                                                                  \
-        auto uf = [number](const TNumber n) { return Binary##name(n, number); };                                       \
-        auto result{TNumbers(numbers.size())};                                                                         \
-        std::transform(numbers.begin(), numbers.end(), result.begin(), uf);                                            \
-        return result;                                                                                                 \
+        return TMap([number](const TNumber n) { return Binary##name(n, number); }, numbers);                           \
     }                                                                                                                  \
                                                                                                                        \
     TNumbers functional_utils::name(const TNumbers& numbers1, const TNumbers& numbers2) noexcept                       \
     {                                                                                                                  \
-        return functional_utils::Map(Binary##name, numbers1, numbers2);                                                \
+        return TMap(Binary##name, numbers1, numbers2);                                                                 \
     }                                                                                                                  \
                                                                                                                        \
     TNumbers functional_utils::name(std::initializer_list<TNumber> numbers1,                                           \
                                     std::initializer_list<TNumber> numbers2) noexcept                                  \
     {                                                                                                                  \
-        auto result{TNumbers(std::max(numbers1.size(), numbers2.size()))};                                             \
-        std::transform(numbers1.begin(), numbers1.end(), numbers2.begin(), result.begin(), Binary##name);              \
-        return result;                                                                                                 \
+        return TMap(Binary##name, numbers1, numbers2);                                                                 \
     }                                                                                                                  \
                                                                                                                        \
     TNumber functional_utils::name(const TNumbers& numbers) noexcept                                                   \
     {                                                                                                                  \
-        return functional_utils::Reduce(Binary##name, numbers);                                                        \
+        return TReduce(Binary##name, numbers);                                                                         \
     }                                                                                                                  \
                                                                                                                        \
     TNumber functional_utils::name(std::initializer_list<TNumber> numbers) noexcept                                    \
     {                                                                                                                  \
-        return std::accumulate(numbers.begin() + 1, numbers.end(), *numbers.begin(), std::ptr_fun(Binary##name));      \
+        return TReduce(Binary##name, numbers);                                                                         \
     }
 
 TNumbers functional_utils::Numbers(std::initializer_list<TNumber> numbers) noexcept
@@ -47,34 +42,71 @@ TNumbers functional_utils::Numbers(std::initializer_list<TNumber> numbers) noexc
     return result;
 }
 
-TNumbers functional_utils::Map(TUnaryFunction uf, const TNumbers& numbers) noexcept
-{
-    auto result{TNumbers(numbers.size())};
-    std::transform(numbers.cbegin(), numbers.cend(), result.begin(), uf);
-    return result;
-}
-
-TNumbers functional_utils::Map(TUnaryFunction uf, std::initializer_list<TNumber> numbers) noexcept
+template <typename TUF, typename TNS>
+TNumbers TMap(TUF uf, const TNS& numbers) noexcept
 {
     auto result{TNumbers(numbers.size())};
     std::transform(numbers.begin(), numbers.end(), result.begin(), uf);
     return result;
 }
 
-TNumbers functional_utils::Map(TBinaryFunction bf, const TNumbers& numbers1, const TNumbers& numbers2) noexcept
+TNumbers functional_utils::Map(TUnaryFunction uf, const TNumbers& numbers) noexcept
+{
+    return TMap(uf, numbers);
+}
+
+TNumbers functional_utils::Map(TUnaryFunction uf, std::initializer_list<TNumber> numbers) noexcept
+{
+    return TMap(uf, numbers);
+}
+
+template <typename TBF, typename TNS>
+TNumbers TMap(TBF bf, const TNS& numbers1, const TNS& numbers2) noexcept
 {
     auto result{TNumbers(numbers1.size())};
-    std::transform(numbers1.cbegin(), numbers1.cend(), numbers2.cbegin(), result.begin(), bf);
+    std::transform(numbers1.begin(), numbers1.end(), numbers2.begin(), result.begin(), bf);
     return result;
+}
+
+TNumbers functional_utils::Map(TBinaryFunction bf, const TNumbers& numbers1, const TNumbers& numbers2) noexcept
+{
+    return TMap(bf, numbers1, numbers2);
 }
 
 TNumbers functional_utils::Map(TBinaryFunction bf,
                                std::initializer_list<TNumber> numbers1,
                                std::initializer_list<TNumber> numbers2) noexcept
 {
-    auto result{TNumbers(std::max(numbers1.size(), numbers1.size()))};
-    std::transform(numbers1.begin(), numbers1.end(), numbers2.begin(), result.begin(), bf);
+    return TMap(bf, numbers1, numbers2);
+}
+
+template <typename TTF, typename TNS>
+TNumbers TMap(TTF tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
+{
+    auto result{TNumbers(numbers1.size())};
+    auto n3{numbers3.begin()};
+    std::transform(numbers1.begin(),
+                   numbers1.end(),
+                   numbers2.begin(),
+                   result.begin(),
+                   [tf, &n3](const TNumber n1, const TNumber n2) { return tf(n1, n2, *n3++); });
     return result;
+}
+
+TNumbers functional_utils::Map(TTernaryFunction tf,
+                               const TNumbers& numbers1,
+                               const TNumbers& numbers2,
+                               const TNumbers& numbers3) noexcept
+{
+    return TMap(tf, numbers1, numbers2, numbers3);
+}
+
+TNumbers functional_utils::Map(TTernaryFunction tf,
+                               std::initializer_list<TNumber> numbers1,
+                               std::initializer_list<TNumber> numbers2,
+                               std::initializer_list<TNumber> numbers3) noexcept
+{
+    return TMap(tf, numbers1, numbers2, numbers3);
 }
 
 TNumbers functional_utils::Range(const unsigned int zeroToThisMinusOne) noexcept
@@ -89,17 +121,22 @@ TNumbers functional_utils::Range(const unsigned int start, const unsigned int en
     return result;
 }
 
-TNumber functional_utils::Reduce(TBinaryFunction bf, const TNumbers& numbers) noexcept
-{
-    return std::accumulate(numbers.cbegin() + 1, numbers.cend(), *numbers.cbegin(), bf);
-}
-
-TNumber functional_utils::Reduce(TBinaryFunction bf, std::initializer_list<TNumber> numbers) noexcept
+template <typename TBF, typename TNS>
+TNumber TReduce(TBF bf, const TNS& numbers) noexcept
 {
     return std::accumulate(numbers.begin() + 1, numbers.end(), *numbers.begin(), bf);
 }
 
-// TODO: Add tests for TNumbers functional_utils::name(const TNumber number, const TNumbers& numbers) noexcept
+TNumber functional_utils::Reduce(TBinaryFunction bf, const TNumbers& numbers) noexcept
+{
+    return TReduce(bf, numbers);
+}
+
+TNumber functional_utils::Reduce(TBinaryFunction bf, std::initializer_list<TNumber> numbers) noexcept
+{
+    return TReduce(bf, numbers);
+}
+
 DEFINE_REDUCER_CPP(Add, +)
 DEFINE_REDUCER_CPP(Divide, /)
 DEFINE_REDUCER_CPP(Multiply, *)

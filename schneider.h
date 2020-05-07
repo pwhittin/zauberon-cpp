@@ -80,12 +80,13 @@ struct TZauberon
 using TZauberons = std::vector<TZauberon>;
 
 TRadians AngleStep(TLength xStep, TWaveLength waveLength) noexcept;
-TZauberon InitializeZauberon(const TLength xStep, const TXYZ& xyzInitial) noexcept;
 TPitchYawRoll PitchYawRoll(TPitch x = 0.0, TYaw y = 0.0, TRoll z = 0.0) noexcept;
 TXYZ Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz) noexcept;
 TNumber SchneiderRadius(TFrequency f) noexcept;
 TXFormMatrix XFormMatrix(const TPitchYawRoll& pyr) noexcept;
 TXYZ XYZ(TX x = 0.0, TY y = 0.0, TZ z = 0.0) noexcept;
+TZauberon ZauberonInitialize(TLength xStep, const TXYZ& xyzInitial) noexcept;
+void ZauberonNewPosition(TLength xStep, TZauberon& zabueron) noexcept;
 
 } // namespace schneider
 

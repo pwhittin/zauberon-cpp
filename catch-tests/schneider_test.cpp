@@ -5,7 +5,7 @@ using namespace schneider;
 
 TEST_CASE("AngleStep", "[AngleStepTest]")
 {
-    CHECK(AngleStep(1, 1) == Approx(9.8696044011));
+    CHECK(AngleStep(1, 1) == Approx(0.0));
 }
 
 TEST_CASE("PitchYawRoll", "[PitchYawRollTest]")
