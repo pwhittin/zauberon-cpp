@@ -3,6 +3,7 @@
 
 #include <vector>
 
+using TIndex = std::size_t;
 using TNumber = double;
 using TNumbers = std::vector<TNumber>;
 

@@ -17,12 +17,12 @@ static const TNumber SPACE{BOX / 2.0};
 static const TNumber CENTER_X{BOX / 2.0};
 static const TNumber CENTER_Y{BOX / 2.0};
 static const TNumber CENTER_Z{BOX / 2.0};
-static const TNumber BACK_BOUNDRY{CENTER_X + (SPACE / 2.0)};
-static const TNumber FRONT_BOUNDRY{CENTER_X - (SPACE / 2.0)};
-static const TNumber RIGHT_BOUNDRY{CENTER_Y + (SPACE / 2.0)};
-static const TNumber LEFT_BOUNDRY{CENTER_Y - (SPACE / 2.0)};
-static const TNumber UP_BOUNDRY{CENTER_Z - (SPACE / 2.0)};
-static const TNumber DOWN_BOUNDRY{CENTER_Z + (SPACE / 2.0)};
+static const TNumber BACK_BOUNDARY{CENTER_X + (SPACE / 2.0)};
+static const TNumber FRONT_BOUNDARY{CENTER_X - (SPACE / 2.0)};
+static const TNumber RIGHT_BOUNDARY{CENTER_Y + (SPACE / 2.0)};
+static const TNumber LEFT_BOUNDARY{CENTER_Y - (SPACE / 2.0)};
+static const TNumber UP_BOUNDARY{CENTER_Z - (SPACE / 2.0)};
+static const TNumber DOWN_BOUNDARY{CENTER_Z + (SPACE / 2.0)};
 static const TNumber NEGATIVE_SPACE{-SPACE};
 static const TNumber POSITIVE_SPACE{SPACE};
 
@@ -30,6 +30,7 @@ static const TNumber POSITIVE_SPACE{SPACE};
 // internal
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static TNumber WaveLength(TFrequency f) noexcept;
+static int Random() noexcept;
 
 static TNumbers Frequencies{Multiply(1e+12, Range(405, 791))};
 static TNumbers WaveLengths{Map(WaveLength, Frequencies)};
@@ -42,19 +43,22 @@ static TNumber Degrees2Radians(const TDegrees d) noexcept
 
 static TLength Radius(const TWaveLength waveLength) noexcept
 {
-    auto waveLengthIt{std::find(WaveLengths.begin(), WaveLengths.end(), waveLength)};
-    auto waveLengthIndex{std::distance(WaveLengths.begin(), waveLengthIt)};
-    return Radii[waveLengthIndex];
+    return Radii[IndexOf(WaveLengths, waveLength)];
+}
+
+static int Random() noexcept
+{
+    return std::rand();
 }
 
 static TRadians RandomAngle() noexcept
 {
-    return Degrees2Radians(static_cast<TDegrees>(std::rand() % 360));
+    return Degrees2Radians(static_cast<TDegrees>(Random() % 360));
 }
 
 static TRotationEnum RandomRotation() noexcept
 {
-    return ((std::rand() % 2) == 0) ? R_RIGHT : R_LEFT;
+    return ((Random() % 2) == 0) ? R_RIGHT : R_LEFT;
 }
 
 static TPitchYawRoll RandomPitchYawRoll() noexcept
@@ -64,17 +68,21 @@ static TPitchYawRoll RandomPitchYawRoll() noexcept
 
 static TWaveLength RandomWaveLength() noexcept
 {
-    return WaveLengths[std::rand() % WaveLengths.size()];
+    return WaveLengths[Random() % WaveLengths.size()];
 }
 
-//(defn space-adjust [x-y-or-z positive-boundry negative-boundry]
-//(cond
-//(< x-y-or-z positive-boundry) positive-space
-//(> x-y-or-z negative-boundry) negitive-space
-//:else x-y-or-z))
-//
-//(defn xyz-space-adjustments [xyz]
-//(map space-adjust xyz [front-boundry left-boundry up-boundry] [back-boundry right-boundry down-boundry]))
+TNumber SpaceAdjust(const TNumber xYorZ, const TNumber positiveBoundary, const TNumber negativeBoundary) noexcept
+{
+    return (xYorZ < positiveBoundary) ? POSITIVE_SPACE : ((xYorZ > negativeBoundary) ? NEGATIVE_SPACE : xYorZ);
+}
+
+TXYZ XYZSpaceAdjustments(const TXYZ& xyz) noexcept
+{
+    return Map(SpaceAdjust,
+               xyz,
+               XYZ(FRONT_BOUNDARY, LEFT_BOUNDARY, UP_BOUNDARY),
+               XYZ(BACK_BOUNDARY, RIGHT_BOUNDARY, DOWN_BOUNDARY));
+}
 
 static TNumber WaveLength(const TFrequency f) noexcept
 {
@@ -147,15 +155,10 @@ void schneider::ZauberonNewPosition(const TLength xStep, TZauberon& z) noexcept
     auto xyzOriginAlongHelixAxis{Rotate3D(z.xfm, xyzOriginAlongXAxis)};
     auto xyzNew{Map(std::trunc, Add(z.xyz, xyzOriginAlongHelixAxis))};
     z.angle = angleNew;
-    z.xyz = xyzNew;
+    z.xyz = XYZSpaceAdjustments(xyzNew);
 }
-//[{:keys [angle angle-step radius rotation xform-matrix xyz] :as zauberon}]
-//(let [new-angle ((if (= rotation :right) +' -) angle angle-step)
-//      xyz-origin-along-x-axis [x-step (*' radius (cos new-angle)) (*' radius (sin new-angle))]
-//      xyz-origin-along-helix-axis (rotate-3d xform-matrix xyz-origin-along-x-axis)
-//      new-xyz (map +' xyz xyz-origin-along-helix-axis)]
-//  (let [tzauberon (transient zauberon)]
-//        (assoc! tzauberon
-//          :angle new-angle
-//          :xyz (xyz-space-adjustments new-xyz))
-//     (persistent! tzauberon))))
+
+TZauberons schneider::Zauberons(const TIndex numberOfZauberons) noexcept
+{
+    return TZauberons{numberOfZauberons};
+}

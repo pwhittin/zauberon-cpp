@@ -3,31 +3,31 @@
 
 using namespace functional_utils;
 
-TEST_CASE("Numbers", "[NumbersTest]")
+TEST_CASE("IndexOf", "[IndexOfTest]")
 {
     SECTION("one number")
     {
         TNumbers numbers{Numbers({11.1})};
-        CHECK(numbers[0] == Approx(11.1));
-        CHECK(numbers.size() == 1);
+        CHECK(IndexOf(numbers, 11.1) == 0);
+        CHECK(IndexOf(numbers, 11.2) == -1);
     }
     SECTION("three numbers")
     {
         TNumbers numbers{Numbers({11.1, 22.2, 33.3})};
-        CHECK(numbers[0] == Approx(11.1));
-        CHECK(numbers[1] == Approx(22.2));
-        CHECK(numbers[2] == Approx(33.3));
-        CHECK(numbers.size() == 3);
+        CHECK(IndexOf(numbers, 11.1) == 0);
+        CHECK(IndexOf(numbers, 22.2) == 1);
+        CHECK(IndexOf(numbers, 33.3) == 2);
+        CHECK(IndexOf(numbers, 44.4) == -1);
     }
     SECTION("five numbers")
     {
         TNumbers numbers{Numbers({11.1, 22.2, 33.3, 44.4, 55.5})};
-        CHECK(numbers[0] == Approx(11.1));
-        CHECK(numbers[1] == Approx(22.2));
-        CHECK(numbers[2] == Approx(33.3));
-        CHECK(numbers[3] == Approx(44.4));
-        CHECK(numbers[4] == Approx(55.5));
-        CHECK(numbers.size() == 5);
+        CHECK(IndexOf(numbers, 11.1) == 0);
+        CHECK(IndexOf(numbers, 22.2) == 1);
+        CHECK(IndexOf(numbers, 33.3) == 2);
+        CHECK(IndexOf(numbers, 44.4) == 3);
+        CHECK(IndexOf(numbers, 55.5) == 4);
+        CHECK(IndexOf(numbers, 66.6) == -1);
     }
 }
 
@@ -214,6 +214,34 @@ TEST_CASE("Map Ternary Inline", "[MapTernaryInlineTest]")
         CHECK(mappedNumbers[3] == Approx(88.4));
         CHECK(mappedNumbers[4] == Approx(110.5));
         CHECK(mappedNumbers.size() == 5);
+    }
+}
+
+TEST_CASE("Numbers", "[NumbersTest]")
+{
+    SECTION("one number")
+    {
+        TNumbers numbers{Numbers({11.1})};
+        CHECK(numbers[0] == Approx(11.1));
+        CHECK(numbers.size() == 1);
+    }
+    SECTION("three numbers")
+    {
+        TNumbers numbers{Numbers({11.1, 22.2, 33.3})};
+        CHECK(numbers[0] == Approx(11.1));
+        CHECK(numbers[1] == Approx(22.2));
+        CHECK(numbers[2] == Approx(33.3));
+        CHECK(numbers.size() == 3);
+    }
+    SECTION("five numbers")
+    {
+        TNumbers numbers{Numbers({11.1, 22.2, 33.3, 44.4, 55.5})};
+        CHECK(numbers[0] == Approx(11.1));
+        CHECK(numbers[1] == Approx(22.2));
+        CHECK(numbers[2] == Approx(33.3));
+        CHECK(numbers[3] == Approx(44.4));
+        CHECK(numbers[4] == Approx(55.5));
+        CHECK(numbers.size() == 5);
     }
 }
 
