@@ -36,30 +36,27 @@ int main()
     {
         std::cout << "Initialization ... ";
         auto xyzInitial{XYZ(50000.0, 50000.0, 50000.0)};
-        auto start = std::chrono::steady_clock::now();
+        auto start{NOW};
         IMap([xyzInitial](const TZauberon& z) { return ZauberonInitialize(1, xyzInitial); }, zauberons);
-        auto end = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        std::cout << "Elapsed Seconds: " << elapsed_seconds.count() << "s\n\n";
+        auto end{NOW};
+        std::cout << "Elapsed Time: " << FormatElapsedTime(ELAPSED_TIME(end, start)) << "\n\n";
     }
 
     {
-        std::cout << "New Poistion\n";
-        auto start = std::chrono::steady_clock::now();
-        WithOpen("zauberons.dat", [&zauberons](TOutput& os) {
-            PrintLnString("# X Y Z", os);
+        auto start{NOW};
+        WithOpen("zauberons.dat", OPEN_FUNCTION_CAPTURE(&zauberons, os) {
+            PrintLn("# X Y Z", os);
             DoTimes(10000, [&zauberons, &os](const TIndex i) {
-                PrintLnString("# Iteration: " + std::to_string(i), os);
+                PrintLn("# Iteration: " + std::to_string(i), os);
                 if (!(i % 1000))
                     std::cout << i << "\n";
                 DoTimes(zauberons.size(), [&zauberons](const TIndex i) { ZauberonNewPosition(1, zauberons[i]); });
                 DoTimes(zauberons.size(),
-                        [&zauberons, &os](const TIndex i) { PrintLnString(FormatXYZ(zauberons[i].xyz), os); });
+                        [&zauberons, &os](const TIndex i) { PrintLn(FormatXYZ(zauberons[i].xyz), os); });
             });
         });
-        auto end = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        std::cout << "Elapsed Seconds: " << elapsed_seconds.count() << "s\n\n";
+        auto end{NOW};
+        std::cout << "\nElapsed Time: " << FormatElapsedTime(ELAPSED_TIME(end, start)) << "\n\n";
     }
 
     return 0;

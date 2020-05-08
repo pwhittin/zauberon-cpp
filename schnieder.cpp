@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include "functional-utils.h"
@@ -115,8 +114,8 @@ TNumber schneider::SchneiderRadius(const TFrequency f) noexcept
 
 TXFormMatrix schneider::XFormMatrix(const TPitchYawRoll& pyr) noexcept
 {
-    TNumbers cosPyr{Map(std::cos, pyr)};
-    TNumbers sinPyr{Map(std::sin, pyr)};
+    TNumbers cosPyr{Map(UNARY_FUNCTION(std::cos), pyr)};
+    TNumbers sinPyr{Map(UNARY_FUNCTION(std::sin), pyr)};
 
     return TXFormMatrix{
         TXYZ{(cosPyr[PYR_PITCH] * cosPyr[PYR_YAW]),
@@ -153,7 +152,7 @@ void schneider::ZauberonNewPosition(const TLength xStep, TZauberon& z) noexcept
     auto angleNew{(z.rotation == R_RIGHT) ? (z.angle + z.angleStep) : (z.angle - z.angleStep)};
     auto xyzOriginAlongXAxis{XYZ(xStep, (z.radius * std::cos(angleNew)), (z.radius * std::sin(angleNew)))};
     auto xyzOriginAlongHelixAxis{Rotate3D(z.xfm, xyzOriginAlongXAxis)};
-    auto xyzNew{Map(std::trunc, Add(z.xyz, xyzOriginAlongHelixAxis))};
+    auto xyzNew{Map(UNARY_FUNCTION(std::trunc), Add(z.xyz, xyzOriginAlongHelixAxis))};
     z.angle = angleNew;
     z.xyz = XYZSpaceAdjustments(xyzNew);
 }

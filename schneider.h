@@ -87,7 +87,7 @@ TXFormMatrix XFormMatrix(const TPitchYawRoll& pyr) noexcept;
 TXYZ XYZ(TX x = 0.0, TY y = 0.0, TZ z = 0.0) noexcept;
 TZauberon ZauberonInitialize(TLength xStep, const TXYZ& xyzInitial) noexcept;
 void ZauberonNewPosition(TLength xStep, TZauberon& zabueron) noexcept;
-TZauberons Zauberons(const TIndex numberOfZauberons) noexcept;
+TZauberons Zauberons(TIndex numberOfZauberons) noexcept;
 
 } // namespace schneider
 

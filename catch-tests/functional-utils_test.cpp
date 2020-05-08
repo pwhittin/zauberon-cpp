@@ -1,3 +1,4 @@
+#include <array>
 #include "../functional-utils.h"
 #include "catch.hpp"
 
