@@ -1,7 +1,7 @@
 #ifndef ZAUBERON_GLOBAL_TYPES_H
 #define ZAUBERON_GLOBAL_TYPES_H
 
-#include <vector>
+#include <array>
 
 #define TArray(type, count) std::array<type, count>
 #define TNumbers(count) std::array<TNumber, count>

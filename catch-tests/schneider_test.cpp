@@ -2,7 +2,7 @@
 #include "catch.hpp"
 
 using namespace schneider;
-// TODO: Fix all unit tests.  Consider moving the destination to the first parameter of all array functions
+
 TEST_CASE("AngleStep", "[AngleStepTest]")
 {
     CHECK(AngleStep(1, 1) == Approx(0.0));
@@ -10,7 +10,8 @@ TEST_CASE("AngleStep", "[AngleStepTest]")
 
 TEST_CASE("PitchYawRoll", "[PitchYawRollTest]")
 {
-    TPitchYawRoll pyr{PitchYawRoll(1.0, 2.0, 3.0)};
+    TPitchYawRoll pyr;
+    PitchYawRoll(1.0, 2.0, 3.0, pyr);
     CHECK(pyr[PYR_PITCH] == Approx(1.0));
     CHECK(pyr[PYR_YAW] == Approx(2.0));
     CHECK(pyr[PYR_ROLL] == Approx(3.0));
@@ -19,10 +20,13 @@ TEST_CASE("PitchYawRoll", "[PitchYawRollTest]")
 
 TEST_CASE("Rotate3D", "[Rotate3DTest]")
 {
-    TPitchYawRoll pyr{PitchYawRoll(1.0, 2.0, 3.0)};
-    TXFormMatrix xfm{XFormMatrix(pyr)};
-    TXYZ xyz{11.0, 22.0, 33.0};
-    TXYZ xyzRotated{Rotate3D(xfm, xyz)};
+    TPitchYawRoll pyr;
+    TXFormMatrix xfm;
+    TXYZ xyz;
+    TXYZ xyzRotated;
+    TXYZ answer;
+    XYZ(11.0, 22.0, 33.0, xyz);
+    Rotate3D(XFormMatrix(PitchYawRoll(1.0, 2.0, 3.0, pyr), xfm), xyz, xyzRotated);
     CHECK(xyzRotated == TXYZ{31.91859139897832, -6.215829627033283, -25.230279133469022});
 }
 
@@ -34,8 +38,9 @@ TEST_CASE("SchneiderRadius", "[SchneiderRadiusTest]")
 
 TEST_CASE("XFormMatrix", "[XFormMatrixTest]")
 {
-    TPitchYawRoll pyr{PitchYawRoll(1.0, 2.0, 3.0)};
-    TXFormMatrix xfm{XFormMatrix(pyr)};
+    TPitchYawRoll pyr;
+    TXFormMatrix xfm;
+    XFormMatrix(PitchYawRoll(1.0, 2.0, 3.0, pyr), xfm);
     CHECK(xfm.size() == 3);
     CHECK(xfm[0].size() == 3);
     CHECK(xfm[1].size() == 3);
@@ -47,7 +52,8 @@ TEST_CASE("XFormMatrix", "[XFormMatrixTest]")
 
 TEST_CASE("XYZ", "[XYZTest]")
 {
-    TXYZ xyz{XYZ(1.0, 2.0, 3.0)};
+    TXYZ xyz;
+    XYZ(1.0, 2.0, 3.0, xyz);
     CHECK(xyz[XYZ_X] == Approx(1.0));
     CHECK(xyz[XYZ_Y] == Approx(2.0));
     CHECK(xyz[XYZ_Z] == Approx(3.0));

@@ -124,10 +124,10 @@ TXYZ& schneider::Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz, TXYZ& xyzRot
 {
     TXYZ xyzTemp;
     Multiply(xfm[XYZ_X], xyz, xyzTemp);
-    Multiply(xfm[XYZ_Y], xyz, xyzTemp);
-    Multiply(xfm[XYZ_Z], xyz, xyzTemp);
     Add(xyzTemp, xyzRotated[XYZ_X]);
+    Multiply(xfm[XYZ_Y], xyz, xyzTemp);
     Add(xyzTemp, xyzRotated[XYZ_Y]);
+    Multiply(xfm[XYZ_Z], xyz, xyzTemp);
     Add(xyzTemp, xyzRotated[XYZ_Z]);
     return xyzRotated;
 }
