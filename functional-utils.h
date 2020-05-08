@@ -22,15 +22,23 @@
     {                                                                                                                  \
         return function(n1, n2);                                                                                       \
     }
-#define OPEN_FN(streamName) (TStream & streamName)
+
 #define TERNARY_FN(function)                                                                                           \
     (const TNumber n1, const TNumber n2, const TNumber n3)                                                             \
     {                                                                                                                  \
         return function(n1, n2, n3);                                                                                   \
     }
-#define UNARY_FN(function) (const TNumber n) { return function(n); }
+
+#define UNARY_FN(function)                                                                                             \
+    (const TNumber n)                                                                                                  \
+    {                                                                                                                  \
+        return function(n);                                                                                            \
+    }
+
+#define UNARY_TYPE_NAME(type, name) (const type name)
 
 #define DOTIMES_FN(index) (const TIndex index)
+#define OPEN_FN(streamName) (TStream & streamName)
 
 #define FUNCTIONS_H(name)                                                                                              \
     TNumber Binary##name(TNumber n1, TNumber n2) noexcept;                                                             \
@@ -81,7 +89,6 @@ using TUnaryFunction = std::function<TNumber(const TNumber)>;
 // internal
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-// typename std::enable_if<!std::numeric_limits<T>::is_integer, bool>::type
 template <typename T>
 auto InternalAlmostEqual(T x, T y, int ulp)
 {

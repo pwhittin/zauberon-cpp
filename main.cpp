@@ -15,7 +15,7 @@ int main()
         Print("Initialization ... ");
         auto xyzInitial{XYZ(50000.0, 50000.0, 50000.0)};
         auto start{NOW};
-        IMap([xyzInitial](const TZauberon& z) { return ZauberonInitialize(1, xyzInitial); }, zauberons);
+        IMap([xyzInitial] UNARY_TYPE_NAME(TZauberon&, z) { return ZauberonInitialize(1, xyzInitial); }, zauberons);
         auto end{NOW};
         PrintLn("Elapsed Time: " + FormatElapsedTime(ELAPSED_TIME(end, start)) + "\n");
     }
