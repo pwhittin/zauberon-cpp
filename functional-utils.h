@@ -9,6 +9,7 @@
 #include <initializer_list>
 #include <iostream>
 #include <numeric>
+#include <string>
 #include "global-types.h"
 
 #define NOW std::chrono::steady_clock::now()
@@ -32,31 +33,31 @@
     TNumber Binary##name(TNumber n1, TNumber n2) noexcept;                                                             \
                                                                                                                        \
     template <typename TNS>                                                                                            \
-    TNumbers name(const TNumber number, const TNS& numbers) noexcept                                                   \
+    auto name(const TNumber number, const TNS& numbers) noexcept                                                       \
     {                                                                                                                  \
         return Map([number](const TNumber n) { return Binary##name(n, number); }, numbers);                            \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TNS>                                                                                            \
-    TNumbers name(const TNS& numbers1, const TNS& numbers2) noexcept                                                   \
+    auto name(const TNS& numbers1, const TNS& numbers2) noexcept                                                       \
     {                                                                                                                  \
         return Map(Binary##name, numbers1, numbers2);                                                                  \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TN>                                                                                             \
-    TNumbers name(std::initializer_list<TN> numbers1, std::initializer_list<TN> numbers2) noexcept                     \
+    auto name(std::initializer_list<TN> numbers1, std::initializer_list<TN> numbers2) noexcept                         \
     {                                                                                                                  \
         return Map(Binary##name, numbers1, numbers2);                                                                  \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TNS>                                                                                            \
-    TNumber name(const TNS& numbers) noexcept                                                                          \
+    auto name(const TNS& numbers) noexcept                                                                             \
     {                                                                                                                  \
         return Reduce(Binary##name, numbers);                                                                          \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TN>                                                                                             \
-    TNumber name(std::initializer_list<TN> numbers) noexcept                                                           \
+    auto name(std::initializer_list<TN> numbers) noexcept                                                              \
     {                                                                                                                  \
         return Reduce(Binary##name, numbers);                                                                          \
     }
@@ -89,7 +90,7 @@ auto InternalAlmostEqual(T x, T y, int ulp)
 }
 
 template <typename TNS>
-TNumbers InternalMap(TUnaryFunction uf, const TNS& numbers) noexcept
+auto InternalMap(TUnaryFunction uf, const TNS& numbers) noexcept
 {
     auto result{TNumbers(numbers.size())};
     std::transform(numbers.begin(), numbers.end(), result.begin(), uf);
@@ -97,7 +98,7 @@ TNumbers InternalMap(TUnaryFunction uf, const TNS& numbers) noexcept
 }
 
 template <typename TNS>
-TNumbers InternalMap(TBinaryFunction bf, const TNS& numbers1, const TNS& numbers2) noexcept
+auto InternalMap(TBinaryFunction bf, const TNS& numbers1, const TNS& numbers2) noexcept
 {
     auto result{TNumbers(numbers1.size())};
     std::transform(numbers1.begin(), numbers1.end(), numbers2.begin(), result.begin(), bf);
@@ -105,7 +106,7 @@ TNumbers InternalMap(TBinaryFunction bf, const TNS& numbers1, const TNS& numbers
 }
 
 template <typename TNS>
-TNumbers InternalMap(TTernaryFunction& tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
+auto InternalMap(TTernaryFunction& tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
 {
     auto result{TNumbers(numbers1.size())};
     auto n3{numbers3.begin()};
@@ -118,7 +119,7 @@ TNumbers InternalMap(TTernaryFunction& tf, const TNS& numbers1, const TNS& numbe
 }
 
 template <typename TNS>
-TNumber InternalReduce(TBinaryFunction bf, const TNS& numbers) noexcept
+auto InternalReduce(TBinaryFunction bf, const TNS& numbers) noexcept
 {
     return std::accumulate(numbers.begin() + 1, numbers.end(), *numbers.begin(), bf);
 }
@@ -134,13 +135,33 @@ void DoTimes(const TTIMES times, TUF uf) noexcept
 }
 
 template <typename TN>
-TString FormatElapsedTime(const TN elapsedTime) noexcept
+auto FormatElapsedTime(const TN elapsedTime) noexcept
 {
     return (elapsedTime >= 1.0) ? std::to_string(elapsedTime) + "s" : std::to_string(1000.0 * elapsedTime) + "ms";
 }
+template <typename TNS>
+auto FormatNumbers(const TNS& numbers) noexcept
+{
+    static const auto MAX_WIDTH(80);
+    auto result{std::string("")};
+    auto lineLength{result.length()};
+    for (auto i : numbers)
+    {
+        auto iStr{std::to_string(i) + " "};
+        if ((lineLength + iStr.length()) > MAX_WIDTH)
+        {
+            iStr = "\n" + iStr;
+            lineLength = 0;
+        }
+        result += iStr;
+        lineLength += iStr.length();
+    }
+    result.pop_back();
+    return result;
+}
 
 template <typename TNS>
-TIndex IndexOf(const TNS& numbers, TNumber number)
+auto IndexOf(const TNS& numbers, TNumber number)
 {
     auto numbersIt{std::find_if(
         numbers.begin(), numbers.end(), [number](const TNumber n) { return InternalAlmostEqual(n, number, 2); })};
@@ -154,48 +175,52 @@ void IMap(TUF uf, TVALUES& values) noexcept
 }
 
 template <typename TNS>
-TNumbers Map(TUnaryFunction uf, const TNS& numbers) noexcept
+auto Map(TUnaryFunction uf, const TNS& numbers) noexcept
 {
     return InternalMap(uf, numbers);
 }
 
 template <typename TN>
-TNumbers Map(TUnaryFunction uf, std::initializer_list<TN> numbers) noexcept
+auto Map(TUnaryFunction uf, std::initializer_list<TN> numbers) noexcept
 {
     return InternalMap(uf, numbers);
 }
 
 template <typename TNS>
-TNumbers Map(TBinaryFunction bf, const TNS& numbers1, const TNS& numbers2) noexcept
+auto Map(TBinaryFunction bf, const TNS& numbers1, const TNS& numbers2) noexcept
 {
     return InternalMap(bf, numbers1, numbers2);
 }
 
 template <typename TN>
-TNumbers Map(TBinaryFunction bf, std::initializer_list<TN> numbers1, std::initializer_list<TN> numbers2) noexcept
+auto Map(TBinaryFunction bf, std::initializer_list<TN> numbers1, std::initializer_list<TN> numbers2) noexcept
 {
     return InternalMap(bf, numbers1, numbers2);
 }
 
 template <typename TNS>
-TNumbers Map(TTernaryFunction tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
+auto Map(TTernaryFunction tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
 {
     return InternalMap(tf, numbers1, numbers2, numbers3);
 }
 
 template <typename TN>
-TNumbers Map(TTernaryFunction tf,
-             std::initializer_list<TN> numbers1,
-             std::initializer_list<TN> numbers2,
-             std::initializer_list<TN> numbers3) noexcept
+auto Map(TTernaryFunction tf,
+         std::initializer_list<TN> numbers1,
+         std::initializer_list<TN> numbers2,
+         std::initializer_list<TN> numbers3) noexcept
 {
     return InternalMap(tf, numbers1, numbers2, numbers3);
 }
 
-TNumbers Numbers(TIndex count) noexcept;
+template <typename I>
+auto Numbers(const I count) noexcept
+{
+    return TNumbers(count);
+}
 
 template <typename TN>
-TNumbers Numbers(std::initializer_list<TN> numbers) noexcept
+auto Numbers(std::initializer_list<TN> numbers) noexcept
 {
     TNumbers result;
     result.insert(result.end(), numbers.begin(), numbers.end());
@@ -238,17 +263,28 @@ void PrintLnErr(const STRING& s) noexcept
     PrintLn(s, std::cerr);
 }
 
-TNumbers Range(TIndex count) noexcept;
-TNumbers Range(TIndex start, TIndex end) noexcept;
+template <typename I>
+auto Range(const I start, const I end) noexcept
+{
+    auto result{TNumbers(end - start)};
+    std::iota(result.begin(), result.end(), start);
+    return result;
+}
+
+template <typename I>
+auto Range(const I count) noexcept
+{
+    return Range(0, count);
+}
 
 template <typename TNS>
-TNumber Reduce(TBinaryFunction bf, const TNS& numbers) noexcept
+auto Reduce(TBinaryFunction bf, const TNS& numbers) noexcept
 {
     return InternalReduce(bf, numbers);
 }
 
 template <typename TN>
-TNumber Reduce(TBinaryFunction bf, std::initializer_list<TN> numbers) noexcept
+auto Reduce(TBinaryFunction bf, std::initializer_list<TN> numbers) noexcept
 {
     return InternalReduce(bf, numbers);
 }

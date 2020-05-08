@@ -7,29 +7,6 @@
 using namespace functional_utils;
 using namespace schneider;
 
-// auto FormatNumbers(const TNumbers& numbers) noexcept
-//{
-//    auto result{std::string("[")};
-//    for (auto i : numbers)
-//        result += std::to_string(i) + " ";
-//    result.back() = ']';
-//    return result;
-//}
-//
-// auto FormatXformMatrix(const TXFormMatrix& xfm) noexcept
-//{
-//    return std::string{"[" + FormatXYZ(xfm[0]) + "\n " + FormatXYZ(xfm[1]) + "\n " + FormatXYZ(xfm[2]) + "]"};
-//}
-//
-
-auto FormatXYZ(const TXYZ& xyz) noexcept
-{
-    auto result{std::string("")};
-    for (auto i : xyz)
-        result += std::to_string(i) + " ";
-    return result;
-}
-
 int main()
 {
     auto zauberons{Zauberons(1000)};
@@ -46,13 +23,13 @@ int main()
         auto start{NOW};
         WithOpen("zauberons.dat", OPEN_FUNCTION_CAPTURE(&zauberons, os) {
             PrintLn("# X Y Z", os);
-            DoTimes(10000, [&zauberons, &os](const TIndex i) {
+            DoTimes(10000000, [&zauberons, &os](const TIndex i) {
                 PrintLn("# Iteration: " + std::to_string(i), os);
                 if (!(i % 1000))
                     std::cout << i << "\n";
                 DoTimes(zauberons.size(), [&zauberons](const TIndex i) { ZauberonNewPosition(1, zauberons[i]); });
                 DoTimes(zauberons.size(),
-                        [&zauberons, &os](const TIndex i) { PrintLn(FormatXYZ(zauberons[i].xyz), os); });
+                        [&zauberons, &os](const TIndex i) { PrintLn(FormatNumbers(zauberons[i].xyz), os); });
             });
         });
         auto end{NOW};
