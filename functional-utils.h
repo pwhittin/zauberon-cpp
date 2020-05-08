@@ -22,47 +22,67 @@
     {                                                                                                                  \
         return function(n1, n2);                                                                                       \
     }
-#define OPEN_FN(streamName) (TStream & streamName)
+
 #define TERNARY_FN(function)                                                                                           \
     (const TNumber n1, const TNumber n2, const TNumber n3)                                                             \
     {                                                                                                                  \
         return function(n1, n2, n3);                                                                                   \
     }
-#define UNARY_FN(function) (const TNumber n) { return function(n); }
+
+#define UNARY_FN(function)                                                                                             \
+    (const TNumber n)                                                                                                  \
+    {                                                                                                                  \
+        return function(n);                                                                                            \
+    }
+
+#define UNARY_TYPE_NAME(type, name) (const type name)
 
 #define DOTIMES_FN(index) (const TIndex index)
+#define OPEN_FN(streamName) (TStream & streamName)
 
 #define FUNCTIONS_H(name)                                                                                              \
     TNumber Binary##name(TNumber n1, TNumber n2) noexcept;                                                             \
                                                                                                                        \
     template <typename TNS>                                                                                            \
-    auto name(const TNumber number, const TNS& numbers) noexcept                                                       \
+    void name(const TNumber number, const TNS& numbers, TNS& numbersDest) noexcept                                     \
     {                                                                                                                  \
-        return Map([number](const TNumber n) { return Binary##name(n, number); }, numbers);                            \
+        Map([number](const TNumber n) { return Binary##name(n, number); }, numbers, numbersDest);                      \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TNS>                                                                                            \
-    auto name(const TNS& numbers1, const TNS& numbers2) noexcept                                                       \
+    void name(const TNS& numbers1, const TNS& numbers2, TNS& numbersDest) noexcept                                     \
     {                                                                                                                  \
-        return Map(Binary##name, numbers1, numbers2);                                                                  \
+        Map(Binary##name, numbers1, numbers2, numbersDest);                                                            \
+    }                                                                                                                  \
+                                                                                                                       \
+    template <typename TN, typename TNS>                                                                               \
+    void name(std::initializer_list<TN> numbers1, std::initializer_list<TN> numbers2, TNS& numbersDest) noexcept       \
+    {                                                                                                                  \
+        Map(Binary##name, numbers1, numbers2, numbersDest);                                                            \
+    }                                                                                                                  \
+                                                                                                                       \
+    template <typename TN, typename TNS>                                                                               \
+    void name(std::initializer_list<TN> numbers1, const TNS& numbers2, TNS& numbersDest) noexcept                      \
+    {                                                                                                                  \
+        Map(Binary##name, numbers1, numbers2, numbersDest);                                                            \
+    }                                                                                                                  \
+                                                                                                                       \
+    template <typename TN, typename TNS>                                                                               \
+    void name(const TNS& numbers1, std::initializer_list<TN> numbers2, TNS& numbersDest) noexcept                      \
+    {                                                                                                                  \
+        Map(Binary##name, numbers1, numbers2, numbersDest);                                                            \
+    }                                                                                                                  \
+                                                                                                                       \
+    template <typename TNS, typename TN>                                                                               \
+    void name(const TNS& numbers, TN& answer) noexcept                                                                 \
+    {                                                                                                                  \
+        return Reduce(Binary##name, numbers, answer);                                                                  \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TN>                                                                                             \
-    auto name(std::initializer_list<TN> numbers1, std::initializer_list<TN> numbers2) noexcept                         \
+    auto name(std::initializer_list<TN> numbers, TN& answer) noexcept                                                  \
     {                                                                                                                  \
-        return Map(Binary##name, numbers1, numbers2);                                                                  \
-    }                                                                                                                  \
-                                                                                                                       \
-    template <typename TNS>                                                                                            \
-    auto name(const TNS& numbers) noexcept                                                                             \
-    {                                                                                                                  \
-        return Reduce(Binary##name, numbers);                                                                          \
-    }                                                                                                                  \
-                                                                                                                       \
-    template <typename TN>                                                                                             \
-    auto name(std::initializer_list<TN> numbers) noexcept                                                              \
-    {                                                                                                                  \
-        return Reduce(Binary##name, numbers);                                                                          \
+        return Reduce(Binary##name, numbers, answer);                                                                  \
     }
 
 namespace functional_utils
@@ -81,7 +101,6 @@ using TUnaryFunction = std::function<TNumber(const TNumber)>;
 // internal
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-// typename std::enable_if<!std::numeric_limits<T>::is_integer, bool>::type
 template <typename T>
 auto InternalAlmostEqual(T x, T y, int ulp)
 {
@@ -92,43 +111,37 @@ auto InternalAlmostEqual(T x, T y, int ulp)
            || std::fabs(x - y) < std::numeric_limits<T>::min();
 }
 
-template <typename TNS>
-auto InternalMap(TUnaryFunction uf, const TNS& numbers) noexcept
+template <typename TUF, typename TVS>
+void InternalMap(TUF uf, const TVS& values, TVS& valuesDest) noexcept
 {
-    auto result{TNumbers(numbers.size())};
-    std::transform(numbers.begin(), numbers.end(), result.begin(), uf);
-    return result;
+    std::transform(values.begin(), values.end(), valuesDest.begin(), uf);
 }
 
-template <typename TNS>
-auto InternalMap(TBinaryFunction bf, const TNS& numbers1, const TNS& numbers2) noexcept
+template <typename TBF, typename TVS>
+void InternalMap(TBF bf, const TVS& values1, const TVS& values2, TVS& valuesDest) noexcept
 {
-    auto result{TNumbers(numbers1.size())};
-    std::transform(numbers1.begin(), numbers1.end(), numbers2.begin(), result.begin(), bf);
-    return result;
+    std::transform(values1.begin(), values1.end(), values2.begin(), valuesDest.begin(), bf);
 }
 
-template <typename TNS>
-auto InternalMap(TTernaryFunction& tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
+template <typename TTF, typename TNS>
+void InternalMap(TTF& tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3, TNS& numbersDest) noexcept
 {
-    auto result{TNumbers(numbers1.size())};
     auto n3{numbers3.begin()};
     std::transform(numbers1.begin(),
                    numbers1.end(),
                    numbers2.begin(),
-                   result.begin(),
+                   numbersDest.begin(),
                    [tf, &n3](const TNumber n1, const TNumber n2) { return tf(n1, n2, *n3++); });
-    return result;
 }
 
-template <typename TNS>
-auto InternalReduce(TBinaryFunction bf, const TNS& numbers) noexcept
+template <typename TBF, typename TVS, typename TV>
+void InternalReduce(TBF bf, const TVS& values, TV& value) noexcept
 {
-    return std::accumulate(numbers.begin() + 1, numbers.end(), *numbers.begin(), bf);
+    value = std::accumulate(values.begin() + 1, values.end(), *values.begin(), bf);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// internal
+// external
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename TNS>
 auto Count(const TNS& ns) noexcept
@@ -170,71 +183,118 @@ auto FormatNumbers(const TNS& numbers) noexcept
     return result;
 }
 
-template <typename TNS>
-auto IndexOf(const TNS& numbers, TNumber number)
+template <typename TVS, typename T>
+auto IndexOf(const TVS& values, T value)
 {
-    auto numbersIt{std::find_if(
-        numbers.begin(), numbers.end(), [number](const TNumber n) { return InternalAlmostEqual(n, number, 2); })};
-    return (numbersIt == numbers.end()) ? -1 : std::distance(numbers.begin(), numbersIt);
+    auto valuesIt{
+        std::find_if(values.begin(), values.end(), [value](const T n) { return InternalAlmostEqual(n, value, 2); })};
+    return (valuesIt == values.end()) ? -1 : std::distance(values.begin(), valuesIt);
 }
 
 template <typename TUF, typename TVALUES>
-void IMap(TUF uf, TVALUES& values) noexcept
+void Map(TUF uf, const TVALUES& values, TVALUES& valuesDest) noexcept
 {
-    std::transform(values.begin(), values.end(), values.begin(), uf);
+    InternalMap(uf, values, valuesDest);
 }
 
-template <typename TNS>
-auto Map(TUnaryFunction uf, const TNS& numbers) noexcept
+template <typename TUF, typename TV, typename TVS>
+void Map(TUF uf, std::initializer_list<TV> values, TVS& valuesDest) noexcept
 {
-    return InternalMap(uf, numbers);
+    InternalMap(uf, values, valuesDest);
 }
 
-template <typename TN>
-auto Map(TUnaryFunction uf, std::initializer_list<TN> numbers) noexcept
+template <typename TBF, typename TVS>
+void Map(TBF bf, const TVS& values1, const TVS& values2, TVS& valuesDest) noexcept
 {
-    return InternalMap(uf, numbers);
+    InternalMap(bf, values1, values2, valuesDest);
 }
 
-template <typename TNS>
-auto Map(TBinaryFunction bf, const TNS& numbers1, const TNS& numbers2) noexcept
+template <typename TBF, typename TV, typename TVS>
+void Map(TBF bf, std::initializer_list<TV> values1, std::initializer_list<TV> values2, TVS& valuesDest) noexcept
 {
-    return InternalMap(bf, numbers1, numbers2);
+    InternalMap(bf, values1, values2, valuesDest);
 }
 
-template <typename TN>
-auto Map(TBinaryFunction bf, std::initializer_list<TN> numbers1, std::initializer_list<TN> numbers2) noexcept
+template <typename TBF, typename TV, typename TVS>
+void Map(TBF bf, std::initializer_list<TV> values1, const TVS& values2, TVS& valuesDest) noexcept
 {
-    return InternalMap(bf, numbers1, numbers2);
+    InternalMap(bf, values1, values2, valuesDest);
 }
 
-template <typename TNS>
-auto Map(TTernaryFunction tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
+template <typename TBF, typename TV, typename TVS>
+void Map(TBF bf, const TVS& values1, std::initializer_list<TV> values2, TVS& valuesDest) noexcept
 {
-    return InternalMap(tf, numbers1, numbers2, numbers3);
+    InternalMap(bf, values1, values2, valuesDest);
 }
 
-template <typename TN>
-auto Map(TTernaryFunction tf,
-         std::initializer_list<TN> numbers1,
-         std::initializer_list<TN> numbers2,
-         std::initializer_list<TN> numbers3) noexcept
+template <typename TTF, typename TVS>
+void Map(TTF tf, const TVS& values1, const TVS& values2, const TVS& values3, TVS& valuesDest) noexcept
 {
-    return InternalMap(tf, numbers1, numbers2, numbers3);
+    InternalMap(tf, values1, values2, values3, valuesDest);
 }
 
-template <typename I>
-auto Numbers(const I count) noexcept
+template <typename TTF, typename TV, typename TVS>
+void Map(TTernaryFunction tf,
+         std::initializer_list<TV> values1,
+         std::initializer_list<TV> values2,
+         std::initializer_list<TV> values3,
+         TVS& valuesDest) noexcept
 {
-    return TNumbers(count);
+    InternalMap(tf, values1, values2, values3, valuesDest);
 }
 
-template <typename TN>
-auto Numbers(std::initializer_list<TN> numbers) noexcept
+template <typename TTF, typename TV, typename TVS>
+void Map(TTernaryFunction tf,
+         std::initializer_list<TV> values1,
+         std::initializer_list<TV> values2,
+         TVS& values3,
+         TVS& valuesDest) noexcept
 {
-    TNumbers result;
-    result.insert(result.end(), numbers.begin(), numbers.end());
-    return result;
+    InternalMap(tf, values1, values2, values3, valuesDest);
+}
+
+template <typename TTF, typename TV, typename TVS>
+void Map(TTernaryFunction tf,
+         std::initializer_list<TV> values1,
+         TVS& values2,
+         std::initializer_list<TV> values3,
+         TVS& valuesDest) noexcept
+{
+    InternalMap(tf, values1, values2, values3, valuesDest);
+}
+
+template <typename TTF, typename TV, typename TVS>
+void Map(TTernaryFunction tf,
+         TVS& values1,
+         std::initializer_list<TV> values2,
+         std::initializer_list<TV> values3,
+         TVS& valuesDest) noexcept
+{
+    InternalMap(tf, values1, values2, values3, valuesDest);
+}
+
+template <typename TTF, typename TV, typename TVS>
+void Map(TTernaryFunction tf, std::initializer_list<TV> values1, TVS& values2, TVS& values3, TVS& valuesDest) noexcept
+{
+    InternalMap(tf, values1, values2, values3, valuesDest);
+}
+
+template <typename TTF, typename TV, typename TVS>
+void Map(TTernaryFunction tf, TVS& values1, std::initializer_list<TV> values2, TVS& values3, TVS& valuesDest) noexcept
+{
+    InternalMap(tf, values1, values2, values3, valuesDest);
+}
+
+template <typename TTF, typename TV, typename TVS>
+void Map(TTernaryFunction tf, TVS& values1, TVS& values2, std::initializer_list<TV> values3, TVS& valuesDest) noexcept
+{
+    InternalMap(tf, values1, values2, values3, valuesDest);
+}
+
+template <typename TV, typename TVS>
+void Values(std::initializer_list<TV> values, TVS& valuesDest) noexcept
+{
+    std::copy(values.begin(), values.end(), valuesDest.begin());
 }
 
 template <typename STRING>
@@ -273,30 +333,28 @@ void PrintLnErr(const STRING& s) noexcept
     std::cerr << s << "\n";
 }
 
-template <typename I>
-auto Range(const I start, const I end) noexcept
+template <typename I, typename TNS>
+void Range(const I start, TNS& values) noexcept
 {
-    auto result{TNumbers(end - start)};
-    std::iota(result.begin(), result.end(), start);
-    return result;
-}
-
-template <typename I>
-auto Range(const I count) noexcept
-{
-    return Range(0, count);
+    std::iota(values.begin(), values.end(), start);
 }
 
 template <typename TNS>
-auto Reduce(TBinaryFunction bf, const TNS& numbers) noexcept
+void Range(TNS& values) noexcept
 {
-    return InternalReduce(bf, numbers);
+    Range(0, values);
 }
 
-template <typename TN>
-auto Reduce(TBinaryFunction bf, std::initializer_list<TN> numbers) noexcept
+template <typename TBF, typename TVS, typename TV>
+void Reduce(TBF bf, const TVS& values, TV& value) noexcept
 {
-    return InternalReduce(bf, numbers);
+    InternalReduce(bf, values, value);
+}
+
+template <typename TBF, typename TV>
+void Reduce(TBF bf, std::initializer_list<TV> values, TV& value) noexcept
+{
+    InternalReduce(bf, values, value);
 }
 
 template <typename STRING>

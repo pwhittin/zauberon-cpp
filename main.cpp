@@ -9,13 +9,15 @@ using namespace schneider;
 
 int main()
 {
-    auto zauberons{Zauberons(1000)};
+    TArray(TZauberon, 1000) zauberons;
 
     {
         Print("Initialization ... ");
-        auto xyzInitial{XYZ(50000.0, 50000.0, 50000.0)};
+        TXYZ xyzInitial;
+        XYZ(50000.0, 50000.0, 50000.0, xyzInitial);
         auto start{NOW};
-        IMap([xyzInitial](const TZauberon& z) { return ZauberonInitialize(1, xyzInitial); }, zauberons);
+        DoTimes(Count(zauberons),
+                [xyzInitial, &zauberons] DOTIMES_FN(i) { ZauberonInitialize(1, xyzInitial, zauberons[i]); });
         auto end{NOW};
         PrintLn("Elapsed Time: " + FormatElapsedTime(ELAPSED_TIME(end, start)) + "\n");
     }

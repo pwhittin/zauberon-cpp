@@ -3,8 +3,10 @@
 
 #include <vector>
 
+#define TArray(type, count) std::array<type, count>
+#define TNumbers(count) std::array<TNumber, count>
+
 using TIndex = std::size_t;
 using TNumber = double;
-using TNumbers = std::vector<TNumber>;
 
 #endif // ZAUBERON_GLOBAL_TYPES_H
