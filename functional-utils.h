@@ -17,17 +17,20 @@
 #define ELAPSED_SECONDS(now, then) std::chrono::duration<TNumber>(now - then).count()
 #define ELAPSED_TIME(now, then) std::chrono::duration<TNumber>(now - then).count()
 
-#define BINARY_FUNCTION(function) [](const TNumber n1, const TNumber n2) { return function(n1, n2); }
-#define BINARY_FUNCTION_CAPTURE(capture, function)                                                                     \
-    [capture](const TNumber n1, const TNumber n2) { return function(n1, n2); }
-#define OPEN_FUNCTION(streamName) [](TStream & streamName)
-#define OPEN_FUNCTION_CAPTURE(capture, streamName) [capture](TStream & streamName)
-#define TERNARY_FUNCTION(function)                                                                                     \
-    [](const TNumber n1, const TNumber n2, const TNumber n3) { return function(n1, n2, n3); }
-#define TERNARY_FUNCTION_CAPTURE(capture, function)                                                                    \
-    [capture](const TNumber n1, const TNumber n2, const TNumber n3) { return function(n1, n2, n3); }
-#define UNARY_FUNCTION(function) [](const TNumber n) { return function(n); }
-#define UNARY_FUNCTION_CAPTURE(capture, function) [capture](const TNumber n) { return function(n); }
+#define BINARY_FN(function)                                                                                            \
+    (const TNumber n1, const TNumber n2)                                                                               \
+    {                                                                                                                  \
+        return function(n1, n2);                                                                                       \
+    }
+#define OPEN_FN(streamName) (TStream & streamName)
+#define TERNARY_FN(function)                                                                                           \
+    (const TNumber n1, const TNumber n2, const TNumber n3)                                                             \
+    {                                                                                                                  \
+        return function(n1, n2, n3);                                                                                   \
+    }
+#define UNARY_FN(function) (const TNumber n) { return function(n); }
+
+#define DOTIMES_FN(index) (const TIndex index)
 
 #define FUNCTIONS_H(name)                                                                                              \
     TNumber Binary##name(TNumber n1, TNumber n2) noexcept;                                                             \
@@ -127,6 +130,12 @@ auto InternalReduce(TBinaryFunction bf, const TNS& numbers) noexcept
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template <typename TNS>
+auto Count(const TNS& ns) noexcept
+{
+    return ns.size();
+}
+
 template <typename TTIMES, typename TUF>
 void DoTimes(const TTIMES times, TUF uf) noexcept
 {
@@ -139,6 +148,7 @@ auto FormatElapsedTime(const TN elapsedTime) noexcept
 {
     return (elapsedTime >= 1.0) ? std::to_string(elapsedTime) + "s" : std::to_string(1000.0 * elapsedTime) + "ms";
 }
+
 template <typename TNS>
 auto FormatNumbers(const TNS& numbers) noexcept
 {
@@ -242,25 +252,25 @@ void PrintLn(const STRING& s, TStream& os) noexcept
 template <typename STRING>
 void Print(const STRING& s) noexcept
 {
-    Print(s, std::cout);
+    std::cout << s;
 }
 
 template <typename STRING>
 void PrintLn(const STRING& s) noexcept
 {
-    PrintLn(s, std::cout);
+    std::cout << s << "\n";
 }
 
 template <typename STRING>
 void PrintErr(const STRING& s) noexcept
 {
-    Print(s, std::cerr);
+    std::cerr << s;
 }
 
 template <typename STRING>
 void PrintLnErr(const STRING& s) noexcept
 {
-    PrintLn(s, std::cerr);
+    std::cerr << s << "\n";
 }
 
 template <typename I>
