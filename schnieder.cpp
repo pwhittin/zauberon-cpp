@@ -28,9 +28,6 @@ static const TNumber POSITIVE_SPACE{SPACE};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static TNumber WaveLength(TFrequency f) noexcept;
-static int Random() noexcept;
-
 static const int FREQ_START{405};
 static const int FREQ_END{791};
 static const int FREQ_COUNT{FREQ_END - FREQ_START};
@@ -39,6 +36,8 @@ TNumbers(FREQ_COUNT) Frequencies;
 TNumbers(FREQ_COUNT) WaveLengths;
 TNumbers(FREQ_COUNT) Radii;
 
+static TNumber WaveLength(TFrequency f) noexcept;
+static int Random() noexcept;
 static bool Initialize() noexcept
 {
     Range(FREQ_START, Frequencies);
@@ -93,9 +92,10 @@ TNumber SpaceAdjust(const TNumber xYorZ, const TNumber positiveBoundary, const T
 
 static TXYZ FRONT_LEFT_UP_BOUNDARIES{FRONT_BOUNDARY, LEFT_BOUNDARY, UP_BOUNDARY};
 static TXYZ BACK_RIGHT_DOWN_BOUNDARIES{BACK_BOUNDARY, RIGHT_BOUNDARY, DOWN_BOUNDARY};
-void XYZSpaceAdjustments(TXYZ& xyz) noexcept
+auto XYZSpaceAdjustments(const TXYZ& xyz, TXYZ& xyzDest) noexcept
 {
-    Map(SpaceAdjust, xyz, FRONT_LEFT_UP_BOUNDARIES, BACK_RIGHT_DOWN_BOUNDARIES, xyz);
+    Map(SpaceAdjust, xyz, FRONT_LEFT_UP_BOUNDARIES, BACK_RIGHT_DOWN_BOUNDARIES, xyzDest);
+    return xyzDest;
 }
 
 static TNumber WaveLength(const TFrequency f) noexcept
@@ -111,25 +111,25 @@ TRadians schneider::AngleStep(const TLength xStep, const TWaveLength waveLength)
     return Degrees2Radians(std::fmod((360.0 * (xStep / waveLength)), 360.0));
 }
 
-void schneider::PitchYawRoll(const TPitch pitch, const TYaw yaw, const TRoll roll, TPitchYawRoll& pyr) noexcept
+TPitchYawRoll&
+schneider::PitchYawRoll(const TPitch pitch, const TYaw yaw, const TRoll roll, TPitchYawRoll& pyr) noexcept
 {
     pyr[PYR_PITCH] = pitch;
     pyr[PYR_YAW] = yaw;
     pyr[PYR_ROLL] = roll;
+    return pyr;
 }
 
-void schneider::Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz, TXYZ& xyzRotated) noexcept
+TXYZ& schneider::Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz, TXYZ& xyzRotated) noexcept
 {
     TXYZ xyzTemp;
-
     Multiply(xfm[XYZ_X], xyz, xyzTemp);
-    Add(xyzTemp, xyzRotated[XYZ_X]);
-
     Multiply(xfm[XYZ_Y], xyz, xyzTemp);
-    Add(xyzTemp, xyzRotated[XYZ_Y]);
-
     Multiply(xfm[XYZ_Z], xyz, xyzTemp);
+    Add(xyzTemp, xyzRotated[XYZ_X]);
+    Add(xyzTemp, xyzRotated[XYZ_Y]);
     Add(xyzTemp, xyzRotated[XYZ_Z]);
+    return xyzRotated;
 }
 
 static TNumber SCHNEIDER_CONSTANT{std::sqrt(H / (PI * C * C * C))};
@@ -138,7 +138,7 @@ TNumber schneider::SchneiderRadius(const TFrequency f) noexcept
     return (f * SCHNEIDER_CONSTANT);
 }
 
-void schneider::XFormMatrix(const TPitchYawRoll& pyr, TXFormMatrix& xfm) noexcept
+TXFormMatrix& schneider::XFormMatrix(const TPitchYawRoll& pyr, TXFormMatrix& xfm) noexcept
 {
     TXYZ cosPyr;
     Map([] UNARY_FN(std::cos), pyr, cosPyr);
@@ -161,16 +161,19 @@ void schneider::XFormMatrix(const TPitchYawRoll& pyr, TXFormMatrix& xfm) noexcep
     xfm[XYZ_Z][XYZ_X] = (-sinPyr[PYR_PITCH]);
     xfm[XYZ_Z][XYZ_Y] = (sinPyr[PYR_ROLL] * cosPyr[PYR_PITCH]);
     xfm[XYZ_Z][XYZ_Z] = (cosPyr[PYR_ROLL] * cosPyr[PYR_PITCH]);
+
+    return xfm;
 }
 
-void schneider::XYZ(const TX x, const TY y, const TZ z, TXYZ& xyz) noexcept
+TXYZ& schneider::XYZ(const TX x, const TY y, const TZ z, TXYZ& xyz) noexcept
 {
     xyz[XYZ_X] = x;
     xyz[XYZ_Y] = y;
     xyz[XYZ_Z] = z;
+    return xyz;
 }
 
-void schneider::ZauberonInitialize(const TLength xStep, const TXYZ& xyzInitial, TZauberon& zauberon) noexcept
+TZauberon& schneider::ZauberonInitialize(const TLength xStep, const TXYZ& xyzInitial, TZauberon& zauberon) noexcept
 {
     TWaveLength waveLength{RandomWaveLength()};
 
@@ -181,20 +184,27 @@ void schneider::ZauberonInitialize(const TLength xStep, const TXYZ& xyzInitial, 
     zauberon.rotation = RandomRotation();
     XFormMatrix(zauberon.pyr, zauberon.xfm);
     zauberon.xyz = xyzInitial;
+    return zauberon;
 }
 
-void schneider::ZauberonNewPosition(const TLength xStep, TZauberon& z) noexcept
+TZauberon& schneider::ZauberonNewPosition(const TLength xStep, TZauberon& zauberon) noexcept
 {
+    zauberon.angle =
+        (zauberon.rotation == R_RIGHT) ? (zauberon.angle + zauberon.angleStep) : (zauberon.angle - zauberon.angleStep);
+
     TXYZ xyzOriginAlongXAxis;
     TXYZ xyzOriginAlongHelixAxis;
     TXYZ xyzNew;
-
-    auto angleNew{(z.rotation == R_RIGHT) ? (z.angle + z.angleStep) : (z.angle - z.angleStep)};
-    XYZ(xStep, (z.radius * std::cos(angleNew)), (z.radius * std::sin(angleNew)), xyzOriginAlongXAxis);
-    Rotate3D(z.xfm, xyzOriginAlongXAxis, xyzOriginAlongHelixAxis);
-    Add(z.xyz, xyzOriginAlongHelixAxis, xyzOriginAlongHelixAxis);
-    Map([] UNARY_FN(std::trunc), xyzOriginAlongHelixAxis, xyzNew);
-    XYZSpaceAdjustments(xyzNew);
-    z.angle = angleNew;
-    z.xyz = xyzNew;
+    XYZSpaceAdjustments(Map([] UNARY_FN(std::trunc),
+                            Add(zauberon.xyz,
+                                Rotate3D(zauberon.xfm,
+                                         XYZ(xStep,
+                                             (zauberon.radius * std::cos(zauberon.angle)),
+                                             (zauberon.radius * std::sin(zauberon.angle)),
+                                             xyzOriginAlongXAxis),
+                                         xyzOriginAlongHelixAxis),
+                                xyzOriginAlongHelixAxis),
+                            xyzNew),
+                        zauberon.xyz);
+    return zauberon;
 }

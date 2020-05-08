@@ -2,7 +2,7 @@
 #include "catch.hpp"
 
 using namespace schneider;
-
+// TODO: Fix all unit tests.  Consider moving the destination to the first parameter of all array functions
 TEST_CASE("AngleStep", "[AngleStepTest]")
 {
     CHECK(AngleStep(1, 1) == Approx(0.0));

@@ -31,8 +31,8 @@ int main()
                 if (!(i % 1000))
                     std::cout << i << "\n";
                 DoTimes(Count(zauberons), [&zauberons] DOTIMES_FN(i) { ZauberonNewPosition(1, zauberons[i]); });
-                DoTimes(Count(zauberons),
-                        [&zauberons, &os] DOTIMES_FN(i) { PrintLn(FormatNumbers(zauberons[i].xyz), os); });
+//                DoTimes(Count(zauberons),
+//                        [&zauberons, &os] DOTIMES_FN(i) { PrintLn(FormatNumbers(zauberons[i].xyz), os); });
             });
         });
         auto end{NOW};

@@ -77,16 +77,14 @@ struct TZauberon
     TXYZ xyz;
 };
 
-using TZauberons = std::vector<TZauberon>;
-
 TRadians AngleStep(TLength xStep, TWaveLength waveLength) noexcept;
-void PitchYawRoll(TPitch x, TYaw y, TRoll z, TPitchYawRoll& pyr) noexcept;
-void Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz, TXYZ& xyzRotated) noexcept;
+TPitchYawRoll& PitchYawRoll(TPitch x, TYaw y, TRoll z, TPitchYawRoll& pyr) noexcept;
+TXYZ& Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz, TXYZ& xyzRotated) noexcept;
 TNumber SchneiderRadius(TFrequency f) noexcept;
-void XFormMatrix(const TPitchYawRoll& pyr, TXFormMatrix& xfm) noexcept;
-void XYZ(TX x, TY y, TZ z, TXYZ& xyzArray) noexcept;
-void ZauberonInitialize(TLength xStep, const TXYZ& xyzInitial, TZauberon& zabueron) noexcept;
-void ZauberonNewPosition(TLength xStep, TZauberon& zabueron) noexcept;
+TXFormMatrix& XFormMatrix(const TPitchYawRoll& pyr, TXFormMatrix& xfm) noexcept;
+TXYZ& XYZ(TX x, TY y, TZ z, TXYZ& xyzArray) noexcept;
+TZauberon& ZauberonInitialize(TLength xStep, const TXYZ& xyzInitial, TZauberon& zabueron) noexcept;
+TZauberon& ZauberonNewPosition(TLength xStep, TZauberon& zauberon) noexcept;
 
 } // namespace schneider
 
