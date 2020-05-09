@@ -40,6 +40,7 @@ static TNumber WaveLength(TFrequency f) noexcept;
 static int Random() noexcept;
 static bool Initialize() noexcept
 {
+    // TODO: this version of multiply should be named scale
     Range(FREQ_START, Frequencies);
     Multiply(1e+12, Frequencies, Frequencies);
 
@@ -108,12 +109,14 @@ static TNumber WaveLength(const TFrequency f) noexcept
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TRadians schneider::AngleStep(const TLength xStep, const TWaveLength waveLength) noexcept
 {
+    // TODO: Don't clip allow sin and cos to do it
     return Degrees2Radians(std::fmod((360.0 * (xStep / waveLength)), 360.0));
 }
 
 TPitchYawRoll&
 schneider::PitchYawRoll(const TPitch pitch, const TYaw yaw, const TRoll roll, TPitchYawRoll& pyr) noexcept
 {
+    // TODO: Use XYZ for this
     pyr[PYR_PITCH] = pitch;
     pyr[PYR_YAW] = yaw;
     pyr[PYR_ROLL] = roll;
