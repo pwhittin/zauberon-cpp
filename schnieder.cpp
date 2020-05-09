@@ -10,6 +10,7 @@ static const TNumber C{299792458};
 static const TNumber H{6.62607004e-34};
 static constexpr TNumber PI{static_cast<TNumber>(1146408.0) / static_cast<TNumber>(364913.0)};
 static constexpr TNumber PI_2{PI * PI};
+static const TNumber SCHNEIDER_CONSTANT{1.0};
 
 static const TNumber BOX{100000.0};
 static const TNumber SPACE{BOX / 2.0};
@@ -106,10 +107,10 @@ TXYZ schneider::Rotate3D(const TXFormMatrix& xfm, const TXYZ& xyz) noexcept
     return TXYZ{Add(Multiply(xfm[0], xyz)), Add(Multiply(xfm[1], xyz)), Add(Multiply(xfm[2], xyz))};
 }
 
-static TNumber SCHNEIDER_CONSTANT{std::sqrt(H / (PI * C * C * C))};
+static TNumber SCHNEIDER_RADIUS_CONSTANT{((SCHNEIDER_CONSTANT * C * C) / H)};
 TNumber schneider::SchneiderRadius(const TFrequency f) noexcept
 {
-    return (f * SCHNEIDER_CONSTANT);
+    return (SCHNEIDER_RADIUS_CONSTANT / f);
 }
 
 TXFormMatrix schneider::XFormMatrix(const TPitchYawRoll& pyr) noexcept

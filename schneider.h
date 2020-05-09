@@ -2,7 +2,7 @@
 #define ZAUBERON_SCHNEIDER_H
 
 #include "global-types.h"
-
+// TODO: When doing collisions pre-calculate the two PitchYarRoll Xform matrices
 /***********************************************************************************************************************
  *  Given
  *      e = energy
@@ -12,19 +12,18 @@
  *      f = Zauberon circular helical frequency
  *      r = Zauberon circular helical radius
  *      z = Zauberon mass
+ *      s = Schneider constant
  *  then
  *      e = (h * f)
  *      e = (m * (c * c))
- *      z = ((pi * r * r) * (c / f))  // volume of one Zauberon wave length
+ *      z = (s / r)
  *  thus
- *      (m * (c * c))                        = (h * f)
- *      (((pi * r * r) * (c / f)) * (c * c)) = (h * f)
- *      ((pi * r * r * c * c * c) / f)       = (h * f)
- *      (r * r)                              = ((h * f * f) / (pi * c * c * c))
- *      r                                    = (sqrt(h / (pi * c * c * c)) * f)
- *      SCHNEIDER_CONSTANT                   = sqrt(h / (pi * c * c * c))
+ *      (h * f)     = (m * (c * c))
+ *      (h * f)     = ((s * c * c) / r)
+ *      (h * f * r) = (s * c * c)
+ *      r           = ((s * c * c) / (h * f))
  *  hence
- *      schneiderRadius = (SCHNEIDER_CONSTANT * f)
+ *      r = ((s * c * c) / h) / f))
  ***********************************************************************************************************************/
 namespace schneider
 {
