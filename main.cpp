@@ -18,10 +18,10 @@ int main()
     {
         Print("Initialization ... ");
         TXYZ xyzInitial;
-        XYZ(50000.0, 50000.0, 50000.0, xyzInitial);
+        XYZ(xyzInitial, 50000.0, 50000.0, 50000.0);
         auto start{NOW};
         DoTimes(Count(zauberons),
-                [xyzInitial, &zauberons] DOTIMES_FN(i) { ZauberonInitialize(1, xyzInitial, zauberons[i]); });
+                [xyzInitial, &zauberons] DOTIMES_FN(i) { ZauberonInitialize(zauberons[i], 1, xyzInitial); });
         auto end{NOW};
         PrintLn("Elapsed Time: " + FormatElapsedTime(ELAPSED_TIME(end, start)) + "\n");
     }
@@ -34,7 +34,7 @@ int main()
                 PrintLn("# Iteration: " + std::to_string(i), os);
                 if (!(i % ITERATION_DISPLAY_DIVISOR))
                     std::cout << i << "\n";
-                DoTimes(Count(zauberons), [&zauberons] DOTIMES_FN(i) { ZauberonNewPosition(1, zauberons[i]); });
+                DoTimes(Count(zauberons), [&zauberons] DOTIMES_FN(i) { ZauberonNewPosition(zauberons[i], 1); });
 //                DoTimes(Count(zauberons),
 //                        [&zauberons, &os] DOTIMES_FN(i) { PrintLn(FormatNumbers(zauberons[i].xyz), os); });
             });

@@ -11,7 +11,7 @@ TEST_CASE("AngleStep", "[AngleStepTest]")
 TEST_CASE("PitchYawRoll", "[PitchYawRollTest]")
 {
     TPitchYawRoll pyr;
-    PitchYawRoll(1.0, 2.0, 3.0, pyr);
+    PitchYawRoll(pyr, 1.0, 2.0, 3.0);
     CHECK(pyr[PYR_PITCH] == Approx(1.0));
     CHECK(pyr[PYR_YAW] == Approx(2.0));
     CHECK(pyr[PYR_ROLL] == Approx(3.0));
@@ -24,9 +24,7 @@ TEST_CASE("Rotate3D", "[Rotate3DTest]")
     TXFormMatrix xfm;
     TXYZ xyz;
     TXYZ xyzRotated;
-    TXYZ answer;
-    XYZ(11.0, 22.0, 33.0, xyz);
-    Rotate3D(XFormMatrix(PitchYawRoll(1.0, 2.0, 3.0, pyr), xfm), xyz, xyzRotated);
+    Rotate3D(xyzRotated, XFormMatrix(xfm, PitchYawRoll(pyr, 1.0, 2.0, 3.0)), XYZ(xyz, 11.0, 22.0, 33.0));
     CHECK(xyzRotated == TXYZ{31.91859139897832, -6.215829627033283, -25.230279133469022});
 }
 
@@ -40,7 +38,7 @@ TEST_CASE("XFormMatrix", "[XFormMatrixTest]")
 {
     TPitchYawRoll pyr;
     TXFormMatrix xfm;
-    XFormMatrix(PitchYawRoll(1.0, 2.0, 3.0, pyr), xfm);
+    XFormMatrix(xfm, PitchYawRoll(pyr, 1.0, 2.0, 3.0));
     CHECK(xfm.size() == 3);
     CHECK(xfm[0].size() == 3);
     CHECK(xfm[1].size() == 3);
@@ -53,7 +51,7 @@ TEST_CASE("XFormMatrix", "[XFormMatrixTest]")
 TEST_CASE("XYZ", "[XYZTest]")
 {
     TXYZ xyz;
-    XYZ(1.0, 2.0, 3.0, xyz);
+    XYZ(xyz, 1.0, 2.0, 3.0);
     CHECK(xyz[XYZ_X] == Approx(1.0));
     CHECK(xyz[XYZ_Y] == Approx(2.0));
     CHECK(xyz[XYZ_Z] == Approx(3.0));
