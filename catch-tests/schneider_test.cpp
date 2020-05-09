@@ -32,8 +32,8 @@ TEST_CASE("Rotate3D", "[Rotate3DTest]")
 
 TEST_CASE("SchneiderRadius", "[SchneiderRadiusTest]")
 {
-    CHECK(SchneiderRadius(1) == Approx(2.7978344950466395e-30));
-    CHECK(SchneiderRadius(405e+12) == Approx(1.13312e-15));
+    CHECK(SchneiderRadius(1) == Approx(1.35639251216973e+50));
+    CHECK(SchneiderRadius(405e+12) == Approx(3.34911731399933E+35));
 }
 
 TEST_CASE("XFormMatrix", "[XFormMatrixTest]")

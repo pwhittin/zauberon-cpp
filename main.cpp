@@ -9,7 +9,11 @@ using namespace schneider;
 
 int main()
 {
-    TArray(TZauberon, 1000) zauberons;
+    static const TIndex ZAUBERON_COUNT{1000};
+    static const TIndex ITERATIONS{10000};
+    static const TIndex ITERATION_DISPLAY_DIVISOR{1000};
+
+    TArray(TZauberon, ZAUBERON_COUNT) zauberons;
 
     {
         Print("Initialization ... ");
@@ -26,9 +30,9 @@ int main()
         auto start{NOW};
         WithOpen("zauberons.dat", [&zauberons] OPEN_FN(os) {
             PrintLn("# X Y Z", os);
-            DoTimes(100000000000, [&zauberons, &os] DOTIMES_FN(i) {
+            DoTimes(ITERATIONS, [&zauberons, &os] DOTIMES_FN(i) {
                 PrintLn("# Iteration: " + std::to_string(i), os);
-                if (!(i % 1000))
+                if (!(i % ITERATION_DISPLAY_DIVISOR))
                     std::cout << i << "\n";
                 DoTimes(Count(zauberons), [&zauberons] DOTIMES_FN(i) { ZauberonNewPosition(1, zauberons[i]); });
 //                DoTimes(Count(zauberons),

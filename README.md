@@ -19,7 +19,7 @@ Space is quantized.  Zauberons can only be positioned at nodes within space's th
 The Zauberon movement program description follows:
 1. They travel in circular helical paths along a direction vector with either **right** or **left** rotation.
 2. The speed of the projection on to their direction vector is constant, and equal to the speed of light.
-3. Their mass is equal to the volume of one wave length.
+3. Their mass is inversely proportional to their circular helical radius.
  
 ## Counter Concepts
 Each Zauberon contains a counter that is decremented by one for each wavelength traveled, and incremented for each 
