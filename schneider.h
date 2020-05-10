@@ -82,6 +82,7 @@ TXYZ& Rotate3D(TXYZ& xyzRotated, TXFormMatrix& xfm, TXYZ& xyz) noexcept;
 TNumber SchneiderRadius(TFrequency f) noexcept;
 TXFormMatrix& XFormMatrix(TXFormMatrix& xfm, const TPitchYawRoll& pyr) noexcept;
 TXYZ& XYZ(TXYZ& xyzArray, TX x, TY y, TZ z) noexcept;
+TXYZ& ZauberonGridPosition(TXYZ& gridPosition, const TZauberon& zauberon) noexcept;
 TZauberon& ZauberonInitialize(TZauberon& zabueron, TLength xStep, const TXYZ& xyzInitial) noexcept;
 TZauberon& ZauberonNewPosition(TZauberon& zauberon, TLength xStep) noexcept;
 

@@ -10,7 +10,6 @@ static const TNumber C{299792458};
 static const TNumber H{6.62607004e-34};
 static constexpr TNumber PI{static_cast<TNumber>(1146408.0) / static_cast<TNumber>(364913.0)};
 static constexpr TNumber PI_2{PI * PI};
-static const TNumber SCHNEIDER_CONSTANT{1.0};
 
 static const TNumber BOX{100000.0};
 static const TNumber SPACE{BOX / 2.0};
@@ -29,9 +28,25 @@ static const TNumber POSITIVE_SPACE{SPACE};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static const int FREQ_START{405};
-static const int FREQ_END{791};
-static const int FREQ_COUNT{FREQ_END - FREQ_START};
+static const TNumber SCHNEIDER_CONSTANT{(C / H)};
+
+static const TNumber FREQ_MULTIPLIER{1e+12};
+static const int FREQ_MIN{405};
+static const int FREQ_MAX{791};
+static const int FREQ_COUNT{FREQ_MAX - FREQ_MIN};
+
+static const TNumber FREQUENCY_MIN{(FREQ_MIN * FREQ_MULTIPLIER)};
+static const TNumber FREQUENCY_MAX{(FREQ_MAX * FREQ_MULTIPLIER)};
+
+static const TNumber WAVELENGTH_MIN{(C * FREQUENCY_MAX)};
+static const TNumber WAVELENGTH_MAX{(C * FREQUENCY_MIN)};
+
+static const TNumber RADIUS_MIN{10};
+static const TNumber RADIUS_MAX{50};
+
+static const TNumber SCHNEIDER_RADIUS_MIN{(SCHNEIDER_CONSTANT * WAVELENGTH_MIN)};
+static const TNumber SCHNEIDER_RADIUS_MAX{(SCHNEIDER_CONSTANT * WAVELENGTH_MAX)};
+static const TNumber SCHNEIDER_RADIUS_RATIO{(RADIUS_MAX - RADIUS_MIN) / (SCHNEIDER_RADIUS_MAX - SCHNEIDER_RADIUS_MIN)};
 
 TNumbers(FREQ_COUNT) Frequencies;
 TNumbers(FREQ_COUNT) WaveLengths;
@@ -41,11 +56,10 @@ static TNumber WaveLength(TFrequency f) noexcept;
 static int Random() noexcept;
 static bool Initialize() noexcept
 {
-    Range(Frequencies, FREQ_START);
+    Range(Frequencies, FREQ_MIN);
     Multiply(Frequencies, 1e+12, Frequencies);
-
     Map(WaveLengths, WaveLength, Frequencies);
-    Map(Radii, SchneiderRadius, Frequencies);
+    Map(Radii, SchneiderRadius, WaveLengths);
 
     return true;
 }
@@ -136,10 +150,9 @@ TXYZ& schneider::Rotate3D(TXYZ& xyzRotated, TXFormMatrix& xfm, TXYZ& xyz) noexce
     return xyzRotated;
 }
 
-static TNumber SCHNEIDER_RADIUS_CONSTANT{((SCHNEIDER_CONSTANT * C * C) / H)};
-TNumber schneider::SchneiderRadius(const TFrequency f) noexcept
+TNumber schneider::SchneiderRadius(const TWaveLength waveLength) noexcept
 {
-    return (SCHNEIDER_RADIUS_CONSTANT / f);
+    return (RADIUS_MIN + (SCHNEIDER_RADIUS_RATIO * (SCHNEIDER_CONSTANT * waveLength)));
 }
 
 TXFormMatrix& schneider::XFormMatrix(TXFormMatrix& xfm, const TPitchYawRoll& pyr) noexcept
@@ -177,6 +190,12 @@ TXYZ& schneider::XYZ(TXYZ& xyz, const TX x, const TY y, const TZ z) noexcept
     return xyz;
 }
 
+TXYZ& schneider::ZauberonGridPosition(TXYZ& gridPosition, const TZauberon& zauberon) noexcept
+{
+    Map(gridPosition, [] UNARY_FN(std::trunc), zauberon.xyz);
+    return gridPosition;
+}
+
 TZauberon& schneider::ZauberonInitialize(TZauberon& zauberon, const TLength xStep, const TXYZ& xyzInitial) noexcept
 {
     TWaveLength waveLength{RandomWaveLength()};
@@ -208,9 +227,7 @@ TZauberon& schneider::ZauberonNewPosition(TZauberon& zauberon, const TLength xSt
     TXYZ xyzNew;
     Add(xyzNew, zauberon.xyz, xyzOriginAlongHelixAxis);
 
-    XYZSpaceAdjustments(xyzNew, xyzNew);
-
-    Map(zauberon.xyz, [] UNARY_FN(std::trunc), xyzNew);
+    XYZSpaceAdjustments(zauberon.xyz, xyzNew);
 
     return zauberon;
 }

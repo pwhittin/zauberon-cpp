@@ -88,7 +88,7 @@
 namespace functional_utils
 {
 
-using TStream = std::fstream;
+using TStream = std::ofstream;
 using TString = std::string;
 using TTimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
@@ -362,6 +362,8 @@ void WithOpen(const STRING& fileSpec, TOpenFunction of) noexcept
 {
     auto outputStream{TStream{fileSpec, std::ios::binary}};
     of(outputStream);
+    outputStream.flush();
+    outputStream.close();
 }
 
 FUNCTIONS_H(Add)

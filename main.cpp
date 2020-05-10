@@ -9,9 +9,14 @@ using namespace schneider;
 
 int main()
 {
-    static const TIndex ZAUBERON_COUNT{10000};
-    static const TIndex ITERATIONS{1000};
-    static const TIndex ITERATION_DISPLAY_DIVISOR{100};
+
+    {
+        WithOpen("test.out", [] OPEN_FN(os) { PrintLn("# X Y Z", os); });
+    }
+
+    static const TIndex ZAUBERON_COUNT{10};
+    static const TIndex ITERATIONS{10000};
+    static const TIndex ITERATION_DISPLAY_DIVISOR{ITERATIONS / 10};
 
     TArray(TZauberon, ZAUBERON_COUNT) zauberons;
 
@@ -35,8 +40,11 @@ int main()
                 if (!(i % ITERATION_DISPLAY_DIVISOR))
                     std::cout << i << "\n";
                 DoTimes(Count(zauberons), [&zauberons] DOTIMES_FN(i) { ZauberonNewPosition(zauberons[i], 1); });
-//                DoTimes(Count(zauberons),
-//                        [&zauberons, &os] DOTIMES_FN(i) { PrintLn(FormatNumbers(zauberons[i].xyz), os); });
+                DoTimes(Count(zauberons), [&zauberons, &os] DOTIMES_FN(i) {
+                    TXYZ gridPosition;
+                    ZauberonGridPosition(gridPosition, zauberons[i]);
+                    PrintLn(FormatNumbers(gridPosition), os);
+                });
             });
         });
         auto end{NOW};
