@@ -9,9 +9,9 @@ using namespace schneider;
 
 int main()
 {
-    static const TIndex ZAUBERON_COUNT{1000};
-    static const TIndex ITERATIONS{10000};
-    static const TIndex ITERATION_DISPLAY_DIVISOR{1000};
+    static const TIndex ZAUBERON_COUNT{10000};
+    static const TIndex ITERATIONS{1000};
+    static const TIndex ITERATION_DISPLAY_DIVISOR{100};
 
     TArray(TZauberon, ZAUBERON_COUNT) zauberons;
 

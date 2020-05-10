@@ -111,33 +111,7 @@ auto InternalAlmostEqual(T x, T y, int ulp)
            || std::fabs(x - y) < std::numeric_limits<T>::min();
 }
 
-template <typename TUF, typename TVS>
-auto InternalMap(TVS& valuesDest, TUF uf, const TVS& values) noexcept
-{
-    std::transform(values.begin(), values.end(), valuesDest.begin(), uf);
-    return valuesDest;
-}
-
-template <typename TBF, typename TVS>
-auto InternalMap(TVS& valuesDest, TBF bf, const TVS& values1, const TVS& values2) noexcept
-{
-    std::transform(values1.begin(), values1.end(), values2.begin(), valuesDest.begin(), bf);
-    return valuesDest;
-}
-
-template <typename TTF, typename TNS>
-auto InternalMap(TNS& numbersDest, TTF& tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
-{
-    auto n3{numbers3.begin()};
-    std::transform(numbers1.begin(),
-                   numbers1.end(),
-                   numbers2.begin(),
-                   numbersDest.begin(),
-                   [tf, &n3](const TNumber n1, const TNumber n2) { return tf(n1, n2, *n3++); });
-    return numbersDest;
-}
-
-template <typename TBF, typename TVS, typename TV>
+template <typename TV, typename TBF, typename TVS>
 auto InternalReduce(TV& value, TBF bf, const TVS& values) noexcept
 {
     value = std::accumulate(values.begin() + 1, values.end(), *values.begin(), bf);
@@ -198,7 +172,7 @@ auto IndexOf(const TVS& values, T value)
 template <typename TUF, typename TVS>
 auto Map(TVS& valuesDest, TUF uf, const TVS& values) noexcept
 {
-    InternalMap(valuesDest, uf, values);
+    std::transform(values.begin(), values.end(), valuesDest.begin(), uf);
     return valuesDest;
 }
 
@@ -212,7 +186,7 @@ auto Map(TVS& valuesDest, TUF uf, std::initializer_list<TV> values) noexcept
 template <typename TBF, typename TVS>
 auto Map(TVS& valuesDest, TBF bf, const TVS& values1, const TVS& values2) noexcept
 {
-    InternalMap(valuesDest, bf, values1, values2);
+    std::transform(values1.begin(), values1.end(), values2.begin(), valuesDest.begin(), bf);
     return valuesDest;
 }
 
@@ -237,11 +211,16 @@ auto Map(TVS& valuesDest, TBF bf, const TVS& values1, std::initializer_list<TV> 
     return valuesDest;
 }
 
-template <typename TTF, typename TVS>
-auto Map(TVS& valuesDest, TTF tf, const TVS& values1, const TVS& values2, const TVS& values3) noexcept
+template <typename TTF, typename TNS>
+auto Map(TNS& numbersDest, TTF& tf, const TNS& numbers1, const TNS& numbers2, const TNS& numbers3) noexcept
 {
-    InternalMap(valuesDest, tf, values1, values2, values3);
-    return valuesDest;
+    auto n3{numbers3.begin()};
+    std::transform(numbers1.begin(),
+                   numbers1.end(),
+                   numbers2.begin(),
+                   numbersDest.begin(),
+                   [tf, &n3](const TNumber n1, const TNumber n2) { return tf(n1, n2, *n3++); });
+    return numbersDest;
 }
 
 template <typename TTF, typename TV, typename TVS>
@@ -359,18 +338,16 @@ auto Range(TNS& values) noexcept
     return values;
 }
 
-template <typename TBF, typename TVS, typename TV>
+template <typename TV, typename TBF, typename TVS>
 auto Reduce(TV& value, TBF bf, const TVS& values) noexcept
 {
-    InternalReduce(value, bf, values);
-    return value;
+    return InternalReduce(value, bf, values);
 }
 
 template <typename TBF, typename TV>
 auto Reduce(TV& value, TBF bf, std::initializer_list<TV> values) noexcept
 {
-    InternalReduce(value, bf, values);
-    return value;
+    return InternalReduce(value, bf, values);
 }
 
 template <typename TV, typename TVS>
