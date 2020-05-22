@@ -10,56 +10,37 @@ static const TNumber C{299792458};
 static const TNumber H{6.62607004e-34};
 static constexpr TNumber PI{static_cast<TNumber>(1146408.0) / static_cast<TNumber>(364913.0)};
 static constexpr TNumber PI_2{PI * PI};
-
-static const TNumber BOX{100000.0};
-static const TNumber SPACE{BOX / 2.0};
-static const TNumber CENTER_X{BOX / 2.0};
-static const TNumber CENTER_Y{BOX / 2.0};
-static const TNumber CENTER_Z{BOX / 2.0};
-static const TNumber BACK_BOUNDARY{CENTER_X + (SPACE / 2.0)};
-static const TNumber FRONT_BOUNDARY{CENTER_X - (SPACE / 2.0)};
-static const TNumber RIGHT_BOUNDARY{CENTER_Y + (SPACE / 2.0)};
-static const TNumber LEFT_BOUNDARY{CENTER_Y - (SPACE / 2.0)};
-static const TNumber UP_BOUNDARY{CENTER_Z - (SPACE / 2.0)};
-static const TNumber DOWN_BOUNDARY{CENTER_Z + (SPACE / 2.0)};
-static const TNumber NEGATIVE_SPACE{-SPACE};
-static const TNumber POSITIVE_SPACE{SPACE};
+static const TNumber SCHNEIDER_CONSTANT{H / (4 * C)};
+static const TNumber SCHNEIDER_RADIUS_FREQUENCY_RATIO{(SCHNEIDER_CONSTANT * C * C) / H};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static const TNumber SCHNEIDER_CONSTANT{(C / H)};
-
 static const TNumber FREQ_MULTIPLIER{1e+12};
 static const int FREQ_MIN{405};
 static const int FREQ_MAX{791};
 static const int FREQ_COUNT{FREQ_MAX - FREQ_MIN};
 
-static const TNumber FREQUENCY_MIN{(FREQ_MIN * FREQ_MULTIPLIER)};
-static const TNumber FREQUENCY_MAX{(FREQ_MAX * FREQ_MULTIPLIER)};
-
-static const TNumber WAVELENGTH_MIN{(C * FREQUENCY_MAX)};
-static const TNumber WAVELENGTH_MAX{(C * FREQUENCY_MIN)};
-
-static const TNumber RADIUS_MIN{10};
-static const TNumber RADIUS_MAX{50};
-
-static const TNumber SCHNEIDER_RADIUS_MIN{(SCHNEIDER_CONSTANT * WAVELENGTH_MIN)};
-static const TNumber SCHNEIDER_RADIUS_MAX{(SCHNEIDER_CONSTANT * WAVELENGTH_MAX)};
-static const TNumber SCHNEIDER_RADIUS_RATIO{(RADIUS_MAX - RADIUS_MIN) / (SCHNEIDER_RADIUS_MAX - SCHNEIDER_RADIUS_MIN)};
-
 TNumbers(FREQ_COUNT) Frequencies;
 TNumbers(FREQ_COUNT) WaveLengths;
 TNumbers(FREQ_COUNT) Radii;
+TLength XStep;
+TLength GridStep;
+TXYZ XYZInitial{0.0, 0.0, 0.0};
+TXYZ XYZGridInitial{0.0, 0.0, 0.0};
 
 static TNumber WaveLength(TFrequency f) noexcept;
 static int Random() noexcept;
 static bool Initialize() noexcept
 {
     Range(Frequencies, FREQ_MIN);
-    Multiply(Frequencies, 1e+12, Frequencies);
+    Multiply(Frequencies, FREQ_MULTIPLIER, Frequencies);
     Map(WaveLengths, WaveLength, Frequencies);
-    Map(Radii, SchneiderRadius, WaveLengths);
+    Map(Radii, SchneiderRadius, Frequencies);
+    XStep = WaveLengths[0] / 100.0;
+    GridStep = XStep / 10.0;
+
+    std::srand(std::time(0));
 
     return true;
 }
@@ -100,19 +81,6 @@ static TWaveLength RandomWaveLength() noexcept
     return WaveLengths[Random() % WaveLengths.size()];
 }
 
-TNumber SpaceAdjust(const TNumber xYorZ, const TNumber positiveBoundary, const TNumber negativeBoundary) noexcept
-{
-    return (xYorZ < positiveBoundary) ? POSITIVE_SPACE : ((xYorZ > negativeBoundary) ? NEGATIVE_SPACE : xYorZ);
-}
-
-static TXYZ FRONT_LEFT_UP_BOUNDARIES{FRONT_BOUNDARY, LEFT_BOUNDARY, UP_BOUNDARY};
-static TXYZ BACK_RIGHT_DOWN_BOUNDARIES{BACK_BOUNDARY, RIGHT_BOUNDARY, DOWN_BOUNDARY};
-auto XYZSpaceAdjustments(TXYZ& xyzDest, const TXYZ& xyz) noexcept
-{
-    Map(xyzDest, SpaceAdjust, xyz, FRONT_LEFT_UP_BOUNDARIES, BACK_RIGHT_DOWN_BOUNDARIES);
-    return xyzDest;
-}
-
 static TNumber WaveLength(const TFrequency f) noexcept
 {
     return (C / f);
@@ -150,9 +118,9 @@ TXYZ& schneider::Rotate3D(TXYZ& xyzRotated, TXFormMatrix& xfm, TXYZ& xyz) noexce
     return xyzRotated;
 }
 
-TNumber schneider::SchneiderRadius(const TWaveLength waveLength) noexcept
+TNumber schneider::SchneiderRadius(const TFrequency frequency) noexcept
 {
-    return (RADIUS_MIN + (SCHNEIDER_RADIUS_RATIO * (SCHNEIDER_CONSTANT * waveLength)));
+    return SCHNEIDER_RADIUS_FREQUENCY_RATIO / frequency;
 }
 
 TXFormMatrix& schneider::XFormMatrix(TXFormMatrix& xfm, const TPitchYawRoll& pyr) noexcept
@@ -190,44 +158,43 @@ TXYZ& schneider::XYZ(TXYZ& xyz, const TX x, const TY y, const TZ z) noexcept
     return xyz;
 }
 
-TXYZ& schneider::ZauberonGridPosition(TXYZ& gridPosition, const TZauberon& zauberon) noexcept
-{
-    Map(gridPosition, [] UNARY_FN(std::trunc), zauberon.xyz);
-    return gridPosition;
-}
-
-TZauberon& schneider::ZauberonInitialize(TZauberon& zauberon, const TLength xStep, const TXYZ& xyzInitial) noexcept
+TZauberon& schneider::ZauberonInitialize(TZauberon& zauberon) noexcept
 {
     TWaveLength waveLength{RandomWaveLength()};
 
     zauberon.angle = RandomAngle();
-    zauberon.angleStep = AngleStep(xStep, waveLength);
+    zauberon.angleStep = AngleStep(XStep, waveLength);
     RandomPitchYawRoll(zauberon.pyr);
     zauberon.radius = Radius(waveLength);
     zauberon.rotation = RandomRotation();
     XFormMatrix(zauberon.xfm, zauberon.pyr);
-    zauberon.xyz = xyzInitial;
+    zauberon.xyz = XYZInitial;
+    zauberon.xyzGrid = XYZGridInitial;
+    zauberon.xyzInitial = XYZInitial;
     return zauberon;
 }
 
-TZauberon& schneider::ZauberonNewPosition(TZauberon& zauberon, const TLength xStep) noexcept
+TZauberon& schneider::ZauberonNewPosition(TZauberon& zauberon) noexcept
 {
     zauberon.angle =
         (zauberon.rotation == R_RIGHT) ? (zauberon.angle + zauberon.angleStep) : (zauberon.angle - zauberon.angleStep);
 
     TXYZ xyzOriginAlongXAxis;
     XYZ(xyzOriginAlongXAxis,
-        xStep,
+        XStep,
         (zauberon.radius * std::cos(zauberon.angle)),
         (zauberon.radius * std::sin(zauberon.angle)));
 
     TXYZ xyzOriginAlongHelixAxis;
     Rotate3D(xyzOriginAlongHelixAxis, zauberon.xfm, xyzOriginAlongXAxis);
 
-    TXYZ xyzNew;
-    Add(xyzNew, zauberon.xyz, xyzOriginAlongHelixAxis);
+    Add(zauberon.xyz, zauberon.xyz, xyzOriginAlongHelixAxis);
 
-    XYZSpaceAdjustments(zauberon.xyz, xyzNew);
+    TXYZ xyzDelta;
+    Subtract(xyzDelta, zauberon.xyz, zauberon.xyzInitial);
+
+    TLength gridStep{GridStep};
+    Map(zauberon.xyzGrid, [gridStep](const TNumber delta) { return std::trunc(delta / gridStep); }, xyzDelta);
 
     return zauberon;
 }

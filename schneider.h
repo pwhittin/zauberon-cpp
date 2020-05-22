@@ -6,24 +6,29 @@
 /***********************************************************************************************************************
  *  Given
  *      e = energy
- *      h = Plank's constant
- *      c = speed of light
+ *      H = Plank's constant
+ *      C = speed of light
  *      m = mass
  *      f = Zauberon circular helical frequency
  *      r = Zauberon circular helical radius
  *      z = Zauberon mass
- *      s = Schneider constant
- *  then
- *      e = (h * f)
- *      e = (m * (c * c))
- *      z = (s / r)
+ *      S = Schneider constant
+ *  and
+ *      e = (H * f)
+ *      e = (m * (C * C))
+ *      z = (S / r)
+ *      r = (C / (4 * f))
  *  thus
- *      (h * f)     = (m * (c * c))
- *      (h * f)     = ((s * c * c) / r)
- *      (h * f * r) = (s * c * c)
- *      r           = ((s * c * c) / (h * f))
+ *      (H * f)     = (m * (C * C))
+ *      (H * f)     = ((S / r) * (C * C))
+ *      (H * f)     = ((S * C * C) / r)
+ *      (H * f * r) = (S * C * C)
+ *      r           = ((S * C * C) / (H * f))
+ *      S           = ((H * r * f) / (C * C))
+ *      S           = ((H * (C / (4 * f)) * f) / (C * C))
  *  hence
- *      r = ((s * c * c) / h) / f))
+ *      r = (((S * C * C) / H) / f)
+ *      S = (H / (4 * C))
  ***********************************************************************************************************************/
 namespace schneider
 {
@@ -74,6 +79,8 @@ struct TZauberon
     TRotationEnum rotation;
     TXFormMatrix xfm;
     TXYZ xyz;
+    TXYZ xyzGrid;
+    TXYZ xyzInitial;
 };
 
 TRadians AngleStep(TLength xStep, TWaveLength waveLength) noexcept;
@@ -82,9 +89,8 @@ TXYZ& Rotate3D(TXYZ& xyzRotated, TXFormMatrix& xfm, TXYZ& xyz) noexcept;
 TNumber SchneiderRadius(TFrequency f) noexcept;
 TXFormMatrix& XFormMatrix(TXFormMatrix& xfm, const TPitchYawRoll& pyr) noexcept;
 TXYZ& XYZ(TXYZ& xyzArray, TX x, TY y, TZ z) noexcept;
-TXYZ& ZauberonGridPosition(TXYZ& gridPosition, const TZauberon& zauberon) noexcept;
-TZauberon& ZauberonInitialize(TZauberon& zabueron, TLength xStep, const TXYZ& xyzInitial) noexcept;
-TZauberon& ZauberonNewPosition(TZauberon& zauberon, TLength xStep) noexcept;
+TZauberon& ZauberonInitialize(TZauberon& zabueron) noexcept;
+TZauberon& ZauberonNewPosition(TZauberon& zauberon) noexcept;
 
 } // namespace schneider
 
