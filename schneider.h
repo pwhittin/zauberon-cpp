@@ -52,22 +52,22 @@ using TXFormMatrix = TArray(TXYZ, 3);
 
 enum TRotationEnum
 {
-    R_LEFT,
-    R_RIGHT
+    LEFT,
+    RIGHT
 };
 
 enum TPitchYawRollEnum
 {
-    PYR_PITCH,
-    PYR_YAW,
-    PYR_ROLL
+    PITCH,
+    YAW,
+    ROLL
 };
 
 enum TXYZEnum
 {
-    XYZ_X,
-    XYZ_Y,
-    XYZ_Z
+    X,
+    Y,
+    Z
 };
 
 struct TZauberon
@@ -90,7 +90,7 @@ TNumber SchneiderRadius(TFrequency f) noexcept;
 TXFormMatrix& XFormMatrix(TXFormMatrix& xfm, const TPitchYawRoll& pyr) noexcept;
 TXYZ& XYZ(TXYZ& xyzArray, TX x, TY y, TZ z) noexcept;
 TZauberon& ZauberonInitialize(TZauberon& zabueron) noexcept;
-TZauberon& ZauberonNewPosition(TZauberon& zauberon) noexcept;
+TZauberon& ZauberonNewPosition(TZauberon& z) noexcept;
 
 } // namespace schneider
 

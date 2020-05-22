@@ -68,7 +68,7 @@ static TRadians RandomAngle() noexcept
 
 static TRotationEnum RandomRotation() noexcept
 {
-    return ((Random() % 2) == 0) ? R_RIGHT : R_LEFT;
+    return ((Random() % 2) == 0) ? RIGHT : LEFT;
 }
 
 static void RandomPitchYawRoll(TPitchYawRoll& pyr) noexcept
@@ -97,9 +97,9 @@ TRadians schneider::AngleStep(const TLength xStep, const TWaveLength waveLength)
 TPitchYawRoll&
 schneider::PitchYawRoll(TPitchYawRoll& pyr, const TPitch pitch, const TYaw yaw, const TRoll roll) noexcept
 {
-    pyr[PYR_PITCH] = pitch;
-    pyr[PYR_YAW] = yaw;
-    pyr[PYR_ROLL] = roll;
+    pyr[PITCH] = pitch;
+    pyr[YAW] = yaw;
+    pyr[ROLL] = roll;
     return pyr;
 }
 
@@ -111,9 +111,9 @@ TXYZ& schneider::Rotate3D(TXYZ& xyzRotated, TXFormMatrix& xfm, TXYZ& xyz) noexce
         Add(xyzRotated[X_Y_OR_Z], xyzTemp);
     };
 
-    MultiplyAdd(XYZ_X);
-    MultiplyAdd(XYZ_Y);
-    MultiplyAdd(XYZ_Z);
+    MultiplyAdd(X);
+    MultiplyAdd(Y);
+    MultiplyAdd(Z);
 
     return xyzRotated;
 }
@@ -131,30 +131,26 @@ TXFormMatrix& schneider::XFormMatrix(TXFormMatrix& xfm, const TPitchYawRoll& pyr
     TXYZ sinPyr;
     Map(sinPyr, [] UNARY_FN(std::sin), pyr);
 
-    xfm[XYZ_X][XYZ_X] = (cosPyr[PYR_PITCH] * cosPyr[PYR_YAW]);
-    xfm[XYZ_X][XYZ_Y] =
-        ((sinPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * cosPyr[PYR_YAW]) - (cosPyr[PYR_ROLL] * sinPyr[PYR_YAW]));
-    xfm[XYZ_X][XYZ_Z] =
-        ((sinPyr[PYR_ROLL] * sinPyr[PYR_YAW]) + (cosPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * cosPyr[PYR_YAW]));
+    xfm[X][X] = (cosPyr[PITCH] * cosPyr[YAW]);
+    xfm[X][Y] = ((sinPyr[ROLL] * sinPyr[PITCH] * cosPyr[YAW]) - (cosPyr[ROLL] * sinPyr[YAW]));
+    xfm[X][Z] = ((sinPyr[ROLL] * sinPyr[YAW]) + (cosPyr[ROLL] * sinPyr[PITCH] * cosPyr[YAW]));
 
-    xfm[XYZ_Y][XYZ_X] = (cosPyr[PYR_PITCH] * sinPyr[PYR_YAW]);
-    xfm[XYZ_Y][XYZ_Y] =
-        ((cosPyr[PYR_ROLL] * cosPyr[PYR_YAW]) + (sinPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * sinPyr[PYR_YAW]));
-    xfm[XYZ_Y][XYZ_Z] =
-        ((cosPyr[PYR_ROLL] * sinPyr[PYR_PITCH] * sinPyr[PYR_YAW]) - (sinPyr[PYR_ROLL] * cosPyr[PYR_YAW]));
+    xfm[Y][X] = (cosPyr[PITCH] * sinPyr[YAW]);
+    xfm[Y][Y] = ((cosPyr[ROLL] * cosPyr[YAW]) + (sinPyr[ROLL] * sinPyr[PITCH] * sinPyr[YAW]));
+    xfm[Y][Z] = ((cosPyr[ROLL] * sinPyr[PITCH] * sinPyr[YAW]) - (sinPyr[ROLL] * cosPyr[YAW]));
 
-    xfm[XYZ_Z][XYZ_X] = (-sinPyr[PYR_PITCH]);
-    xfm[XYZ_Z][XYZ_Y] = (sinPyr[PYR_ROLL] * cosPyr[PYR_PITCH]);
-    xfm[XYZ_Z][XYZ_Z] = (cosPyr[PYR_ROLL] * cosPyr[PYR_PITCH]);
+    xfm[Z][X] = (-sinPyr[PITCH]);
+    xfm[Z][Y] = (sinPyr[ROLL] * cosPyr[PITCH]);
+    xfm[Z][Z] = (cosPyr[ROLL] * cosPyr[PITCH]);
 
     return xfm;
 }
 
 TXYZ& schneider::XYZ(TXYZ& xyz, const TX x, const TY y, const TZ z) noexcept
 {
-    xyz[XYZ_X] = x;
-    xyz[XYZ_Y] = y;
-    xyz[XYZ_Z] = z;
+    xyz[X] = x;
+    xyz[Y] = y;
+    xyz[Z] = z;
     return xyz;
 }
 
@@ -174,27 +170,23 @@ TZauberon& schneider::ZauberonInitialize(TZauberon& zauberon) noexcept
     return zauberon;
 }
 
-TZauberon& schneider::ZauberonNewPosition(TZauberon& zauberon) noexcept
+TZauberon& schneider::ZauberonNewPosition(TZauberon& z) noexcept
 {
-    zauberon.angle =
-        (zauberon.rotation == R_RIGHT) ? (zauberon.angle + zauberon.angleStep) : (zauberon.angle - zauberon.angleStep);
+    z.angle = (z.rotation == RIGHT) ? (z.angle + z.angleStep) : (z.angle - z.angleStep);
 
     TXYZ xyzOriginAlongXAxis;
-    XYZ(xyzOriginAlongXAxis,
-        XStep,
-        (zauberon.radius * std::cos(zauberon.angle)),
-        (zauberon.radius * std::sin(zauberon.angle)));
+    XYZ(xyzOriginAlongXAxis, XStep, (z.radius * std::cos(z.angle)), (z.radius * std::sin(z.angle)));
 
     TXYZ xyzOriginAlongHelixAxis;
-    Rotate3D(xyzOriginAlongHelixAxis, zauberon.xfm, xyzOriginAlongXAxis);
+    Rotate3D(xyzOriginAlongHelixAxis, z.xfm, xyzOriginAlongXAxis);
 
-    Add(zauberon.xyz, zauberon.xyz, xyzOriginAlongHelixAxis);
+    Add(z.xyz, z.xyz, xyzOriginAlongHelixAxis);
 
     TXYZ xyzDelta;
-    Subtract(xyzDelta, zauberon.xyz, zauberon.xyzInitial);
+    Subtract(xyzDelta, z.xyz, z.xyzInitial);
 
     TLength gridStep{GridStep};
-    Map(zauberon.xyzGrid, [gridStep](const TNumber delta) { return std::trunc(delta / gridStep); }, xyzDelta);
+    Map(z.xyzGrid, [gridStep](const TNumber delta) { return std::trunc(delta / gridStep); }, xyzDelta);
 
-    return zauberon;
+    return z;
 }

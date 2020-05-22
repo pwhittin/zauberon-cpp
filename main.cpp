@@ -38,10 +38,10 @@ int main()
                 DoTimes(Count(zauberons), [&zauberons] DOTIMES_FN(i) { ZauberonNewPosition(zauberons[i]); });
                 DoTimes(Count(zauberons), [&maxX, &maxY, &minX, &minY, &os, &zauberons] DOTIMES_FN(i) {
                     PrintLn(FormatNumbers(zauberons[i].xyzGrid), os);
-                    maxX = (zauberons[i].xyzGrid[XYZ_X] > maxX) ? zauberons[i].xyzGrid[XYZ_X] : maxX;
-                    maxY = (zauberons[i].xyzGrid[XYZ_Y] > maxY) ? zauberons[i].xyzGrid[XYZ_Y] : maxY;
-                    minX = (zauberons[i].xyzGrid[XYZ_X] < minX) ? zauberons[i].xyzGrid[XYZ_X] : minX;
-                    minY = (zauberons[i].xyzGrid[XYZ_Y] < minY) ? zauberons[i].xyzGrid[XYZ_Y] : minY;
+                    maxX = (zauberons[i].xyzGrid[X] > maxX) ? zauberons[i].xyzGrid[X] : maxX;
+                    maxY = (zauberons[i].xyzGrid[Y] > maxY) ? zauberons[i].xyzGrid[Y] : maxY;
+                    minX = (zauberons[i].xyzGrid[X] < minX) ? zauberons[i].xyzGrid[X] : minX;
+                    minY = (zauberons[i].xyzGrid[Y] < minY) ? zauberons[i].xyzGrid[Y] : minY;
                 });
             });
             PrintLn("");
